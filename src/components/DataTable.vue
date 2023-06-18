@@ -1,22 +1,32 @@
 <template>
+  <v-container>
     <v-card>
-      <v-card-title>
-        Nutrition
-        <v-spacer></v-spacer>
-        <v-text-field
-          v-model="search"
-          append-icon="mdi-magnify"
-          label="Search"
-          single-line
-          hide-details
-        ></v-text-field>
-      </v-card-title>
-      <v-data-table
-        :headers="headers"
-        :items="desserts"
-        :search="search"
-      ></v-data-table>
+      <v-row class="pt-3">
+        <v-col md="3" offset="9">
+          <v-card-title>
+              <v-text-field
+                v-model="search"
+                append-inner-icon="mdi-magnify"
+                label="Search"
+                single-line
+                hide-details
+                density="compact"
+                variant="solo"
+              ></v-text-field>
+            </v-card-title>
+        </v-col>
+      </v-row>
+      <v-row class="mt-0">
+        <v-col md="12">
+          <v-data-table
+            :headers="headers"
+            :items="desserts"
+            :search="search"
+          ></v-data-table>
+        </v-col>
+      </v-row>
     </v-card>
+  </v-container>
   </template>
 
   <script>
