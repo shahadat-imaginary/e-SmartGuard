@@ -1,6 +1,10 @@
 <template>
-      <v-navigation-drawer v-model="drawer" :rail="rail" permanent style="background-color: #222d32; color: #fff;">
-        <v-list-item
+      <v-navigation-drawer v-model="drawer" :rail="rail" permanent >
+        <div style="background-color: #007bff; color: #fff; height: 64px;">
+        <v-list-item title="eSmartG" value="eSmartG"></v-list-item>
+        </div>
+
+          <v-list-item
             prepend-avatar="https://randomuser.me/api/portraits/men/85.jpg"
             title="John Leider"
             nav
@@ -29,10 +33,10 @@
           </v-list>
       </v-navigation-drawer>
   
-      <v-app-bar>
+      <v-app-bar style="background-color: #007bff; color: #fff;">
         <v-app-bar-nav-icon @click="rail = !rail"></v-app-bar-nav-icon>
         <v-spacer></v-spacer>
-        <v-btn icon>
+        <v-btn icon to="/login">
           <v-icon>mdi-export</v-icon>
         </v-btn>
         
