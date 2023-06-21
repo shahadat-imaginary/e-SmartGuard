@@ -1,13 +1,20 @@
 <template>
     <v-app id="inspire">
-        <NavigationDrawer />
-        <v-main>
-          <Breadcrumbs />
-          <box />
-          <Datatable />
-          <Footerbar />
-        </v-main>
-        
+      <NavigationDrawer />
+      <v-main>
+        <Breadcrumbs />
+        <box />
+        <v-row>
+            <v-col md="6" sm="12">
+              <MainCampus />
+            </v-col>
+            <v-col md="6" sm="12">
+              <TechCampus />
+            </v-col>
+          </v-row>
+        <Datatable />
+        <Footerbar />
+      </v-main>
   </v-app>
   </template>
   
@@ -17,4 +24,6 @@
     import Datatable from '@/components/DataTable.vue'
     import Box from '@/components/Box.vue'
     import Footerbar from '@/components/Footer.vue';
+    import MainCampus from '@/components/MainCampus.vue';
+    import TechCampus from '@/components/TechCampus.vue';
   </script>

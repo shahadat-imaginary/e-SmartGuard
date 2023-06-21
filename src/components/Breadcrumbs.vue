@@ -3,7 +3,7 @@
         <v-row>
             <v-col md="12">
               <v-app-bar color="transparent" flat>
-                <v-toolbar-title class="hidden-sm-and-down font-weight-light" text="Dashboard"/>
+                <v-toolbar-title class="hidden-sm-and-down" style="font-size: 1.6rem; font-weight: 400;" text="Dashboard"/>
                 <v-breadcrumbs :items="items">
                     <template v-slot:divider>
                     <v-icon icon="mdi-chevron-right"></v-icon>

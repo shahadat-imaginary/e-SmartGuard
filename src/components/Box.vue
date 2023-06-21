@@ -1,7 +1,7 @@
 <template class="body-bg">
     <v-container>
         <v-row>
-          <v-col md="3">
+          <v-col md="3" sm="6">
             <v-hover v-slot="{ isHovering, props }" open-delay="200">
             <v-card :elevation="isHovering ? 16 : 2" :class="{ 'on-hover': isHovering }" class="mx-auto pa-3 bg-success" v-bind="props">
               <div class="d-flex flex-no-wrap box">
@@ -16,7 +16,7 @@
             </v-card>
           </v-hover>
           </v-col>
-          <v-col md="3">
+          <v-col md="3" sm="6">
             <v-hover v-slot="{ isHovering, props }" open-delay="200">
             <v-card :elevation="isHovering ? 16 : 2" :class="{ 'on-hover': isHovering }" class="mx-auto pa-3 bg-primary" v-bind="props">
               <div class="d-flex flex-no-wrap box">
@@ -31,7 +31,7 @@
             </v-card>
           </v-hover>
           </v-col>
-          <v-col md="3">
+          <v-col md="3" sm="6">
             <v-hover v-slot="{ isHovering, props }" open-delay="200">
             <v-card :elevation="isHovering ? 16 : 2" :class="{ 'on-hover': isHovering }" class="mx-auto pa-3 bg-warning" v-bind="props">
               <div class="d-flex flex-no-wrap box">
@@ -40,13 +40,13 @@
                     <v-card-subtitle class="pb-4">Total Routes</v-card-subtitle>
                   </div>
                   <div class="ma-3 icon-sec" rounded="0">
-                    <v-icon icon="mdi mdi-map-marker-radius"></v-icon>
+                    <v-icon icon="mdi mdi-routes"></v-icon>
                   </div>
               </div>
             </v-card>
           </v-hover>
           </v-col>
-          <v-col md="3">
+          <v-col md="3" sm="6">
             <v-hover v-slot="{ isHovering, props }" open-delay="200">
             <v-card :elevation="isHovering ? 16 : 2" :class="{ 'on-hover': isHovering }" class="mx-auto pa-3 bg-danger" v-bind="props">
               <div class="d-flex flex-no-wrap box">
