@@ -1,5 +1,5 @@
 <template>
-      <v-navigation-drawer v-model="drawer" :rail="rail" permanent >
+      <v-navigation-drawer v-model="drawer" :rail="rail" permanent expand-on-hover >
         <div style="background-color: #007bff; color: #fff; height: 64px;">
         <v-list-item title="eSmartG" value="eSmartG"></v-list-item>
         </div>
@@ -14,21 +14,43 @@
           <v-divider></v-divider>
   
           <v-list density="compact" nav>
-            <v-list-item prepend-icon="mdi mdi-view-dashboard" title="Dashboard" value="Dashboard"></v-list-item>
-            <v-list-item prepend-icon="mdi-account" title="Profile" value="Profile"></v-list-item>
-            <v-list-group value="Guard Management">
+            <v-list-item prepend-icon="mdi mdi-home" value="Home" title="Home"></v-list-item>
+            <v-list-group value="Users Management ">
               <template v-slot:activator="{ props }">
-                <v-list-item v-bind="props" prepend-icon="mdi-account-group-outline" title="Guard Management"></v-list-item>
+                <v-list-item v-bind="props" prepend-icon="mdi mdi-account-group" title="Users Management"></v-list-item>
               </template>
-              <v-list-item value="Add Guards" title="Add Guards"></v-list-item>
-              <v-list-item value="Guards List" title="Guards List"></v-list-item>
+              <v-list-item prepend-icon="mdi mdi-circle-outline" value="User List" title="User List"></v-list-item>
+              <v-list-item prepend-icon="mdi mdi-circle-outline" value="Change Password" title="Change Password"></v-list-item>
             </v-list-group>
-            <v-list-item prepend-icon="mdi mdi-view-dashboard" title="Checkpoints Management" value="Checkpoints Management"></v-list-item>
-            <v-list-item prepend-icon="mdi mdi-view-dashboard" title="Rounds Management" value="Rounds Management"></v-list-item>
-            <v-list-item prepend-icon="mdi mdi-view-dashboard" title="Reports" value="Reports"></v-list-item>
-            <v-list-item prepend-icon="mdi mdi-clock-time-two-outline" title="Set Timezone" value="Set Timezone"></v-list-item>
-            <v-list-item prepend-icon="mdi mdi-view-dashboard" title="About Us" value="About Us"></v-list-item>
-            <v-list-item prepend-icon="mdi mdi-history" title="Login Logs" value="Login Logs"></v-list-item>
+            <v-list-group value="Guards Management">
+              <template v-slot:activator="{ props }">
+                <v-list-item v-bind="props" prepend-icon="mdi mdi-shield-account" title="Guards Management"></v-list-item>
+              </template>
+              <v-list-item prepend-icon="mdi mdi-circle-outline" value="Guard List" title="Guard List"></v-list-item>
+              <v-list-item prepend-icon="mdi mdi-circle-outline" value="Change Password" title="Change Password"></v-list-item>
+            </v-list-group>
+            <v-list-group value="Patrol Management">
+              <template v-slot:activator="{ props }">
+                <v-list-item v-bind="props" prepend-icon="mdi mdi-podcast" title="Patrol Management"></v-list-item>
+              </template>
+              <v-list-item prepend-icon="mdi mdi-circle-outline" value="Checkpoint List" title="Checkpoint List"></v-list-item>
+              <v-list-item prepend-icon="mdi mdi-circle-outline" value="Route List" title="Route List"></v-list-item>
+              <v-list-item prepend-icon="mdi mdi-circle-outline" value="Patrol List" title="Patrol List"></v-list-item>
+            </v-list-group>
+            <v-list-group value="Reports">
+              <template v-slot:activator="{ props }">
+                <v-list-item v-bind="props" prepend-icon="mdi mdi-folder-open" title="Reports"></v-list-item>
+              </template>
+              <v-list-item prepend-icon="mdi mdi-circle-outline" value="Patrols Report" title="Patrols Report"></v-list-item>
+            </v-list-group>
+            <v-list-group value="Administrator">
+              <template v-slot:activator="{ props }">
+                <v-list-item v-bind="props" prepend-icon="mdi mdi-cogs" title="Administrator"></v-list-item>
+              </template>
+              <v-list-item prepend-icon="mdi mdi-circle-outline" value="User Access" title="User Access"></v-list-item>
+            </v-list-group>
+            <v-list-item title="Information" value="Information"></v-list-item>
+            <v-list-item prepend-icon="mdi mdi-circle-outline" title="User Manual" value="User Manual"></v-list-item>
             
           </v-list>
       </v-navigation-drawer>
@@ -36,16 +58,62 @@
       <v-app-bar style="background-color: #007bff; color: #fff;">
         <v-app-bar-nav-icon @click="rail = !rail"></v-app-bar-nav-icon>
         <v-spacer></v-spacer>
-        <v-btn icon to="/login">
-          <v-icon>mdi-export</v-icon>
-        </v-btn>
-        
+        <v-menu min-width="200px" rounded>
+        <template v-slot:activator="{ props }">
+          <v-btn
+            icon
+            v-bind="props"
+          >
+            <v-avatar
+              color="brown"
+            >
+              <v-img
+                v-if="user.initials"
+                alt="Avatar"
+                src="https://randomuser.me/api/portraits/men/85.jpg"
+              ></v-img>
+            </v-avatar>
+          </v-btn>
+        </template>
+        <v-card>
+          <v-card-text>
+            <div class="mx-auto text-center">
+              <v-avatar
+                color="brown" size="150"
+              >
+              <v-img
+                v-if="user.initials"
+                alt="Avatar"
+                src="https://randomuser.me/api/portraits/men/85.jpg"
+              ></v-img>
+              </v-avatar>
+              <h2 class="mt-2">{{ user.fullName }}</h2>
+              <p class="text-caption mt-1">
+                {{ user.id }}
+              </p>
+              <p class="text-caption mt-1">
+                {{ user.name }}
+              </p>
+              <v-divider class="my-3"></v-divider>
+              <v-btn class="me-2 text-none" color="indigo-accent-4" variant="flat">Change Password</v-btn>
+              <v-btn to="/login" class="me-2 text-none" color="red-darken-4" variant="flat">Log Out</v-btn>
+            </div>
+          </v-card-text>
+        </v-card>
+      </v-menu>
       </v-app-bar>
   </template>
   
   <script>
     export default {
-      data: () => ({ drawer: null, rail: null }),
+      data: () => ({ drawer: null, rail: null,
+        user: {
+        initials: 'https://randomuser.me/api/portraits/men/85.jpg',
+        fullName: 'SUPER ADMIN',
+        id: '840412025055',
+        name: 'ADMINISTRATOR',
+      },
+     }),
     }
   </script>
   
