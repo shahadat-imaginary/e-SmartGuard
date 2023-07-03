@@ -7,7 +7,7 @@
                         Technology Campus
                   </v-card-item>
                   <v-card-item style="padding: 1.25rem;">
-                    <GoogleMap api-key="AIzaSyDFOg2mJVPijFW5w8lFpWiynwuNos5Z1wY" style="width: 100%; height: 500px" :center="center" :zoom="15">
+                    <GoogleMap api-key="AIzaSyCKIUGDdYeVXnxzWGRz2vkJ_9l90z6Cb3w" style="width: 100%; height: 500px" :center="center" :zoom="15">
                       <Marker :options="{ position: center }" />
                     </GoogleMap>
                   </v-card-item>
