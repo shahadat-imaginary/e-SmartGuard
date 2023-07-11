@@ -10,24 +10,24 @@
             nav
           >
           </v-list-item>
-  
+
           <v-divider></v-divider>
-  
+
           <v-list density="compact" nav>
-            <v-list-item prepend-icon="mdi mdi-home" value="Home" title="Home"></v-list-item>
+            <v-list-item prepend-icon="mdi mdi-home" value="Home" title="Home" to="/"></v-list-item>
             <v-list-group value="Users Management ">
               <template v-slot:activator="{ props }">
                 <v-list-item v-bind="props" prepend-icon="mdi mdi-account-group" title="Users Management"></v-list-item>
               </template>
-              <v-list-item prepend-icon="mdi mdi-circle-outline" value="User List" title="User List"></v-list-item>
-              <v-list-item prepend-icon="mdi mdi-circle-outline" value="Change Password" title="Change Password"></v-list-item>
+              <v-list-item prepend-icon="mdi mdi-circle-outline" value="User List" title="User List" to="/form-advanced"></v-list-item>
+              <v-list-item prepend-icon="mdi mdi-circle-outline" value="User Change Password" title="Change Password" to="/user"></v-list-item>
             </v-list-group>
             <v-list-group value="Guards Management">
               <template v-slot:activator="{ props }">
                 <v-list-item v-bind="props" prepend-icon="mdi mdi-shield-account" title="Guards Management"></v-list-item>
               </template>
               <v-list-item prepend-icon="mdi mdi-circle-outline" value="Guard List" title="Guard List"></v-list-item>
-              <v-list-item prepend-icon="mdi mdi-circle-outline" value="Change Password" title="Change Password"></v-list-item>
+              <v-list-item prepend-icon="mdi mdi-circle-outline" value="Guard Change Password" title="Change Password"></v-list-item>
             </v-list-group>
             <v-list-group value="Patrol Management">
               <template v-slot:activator="{ props }">
@@ -49,12 +49,10 @@
               </template>
               <v-list-item prepend-icon="mdi mdi-circle-outline" value="User Access" title="User Access"></v-list-item>
             </v-list-group>
-            <v-list-item title="Information" value="Information"></v-list-item>
-            <v-list-item prepend-icon="mdi mdi-circle-outline" title="User Manual" value="User Manual"></v-list-item>
-            
+
           </v-list>
       </v-navigation-drawer>
-  
+
       <v-app-bar style="background-color: #007bff; color: #fff;">
         <v-app-bar-nav-icon @click="rail = !rail"></v-app-bar-nav-icon>
         <v-spacer></v-spacer>
@@ -103,7 +101,7 @@
       </v-menu>
       </v-app-bar>
   </template>
-  
+
   <script>
     export default {
       data: () => ({ drawer: null, rail: null,
@@ -116,4 +114,3 @@
      }),
     }
   </script>
-  

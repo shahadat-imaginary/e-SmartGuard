@@ -20,6 +20,18 @@ const routes = [
         // component: LoginVue,
         component: () => import('@/views/Login.vue'),
       },
+      {
+        path: '/user',
+        name: 'User Form',
+        // component: LoginVue,
+        component: () => import('@/views/User-form-view.vue'),
+      },
+      {
+        path: '/form-advanced',
+        name: 'Advanced Form',
+        // component: LoginVue,
+        component: () => import('@/views/advanced-form-view.vue'),
+      },
     ],
   },
 ]
