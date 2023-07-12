@@ -34,7 +34,7 @@
                     :rules="[v => !!v || 'Route is required']"></v-select>
 
                 <div class="d-flex">
-                  <v-btn color="success" class="mt-4 mr-2" @click="validate">Validate</v-btn>
+                  <v-btn color="success" class="mt-4 mr-2" @click="validate">Save</v-btn>
                   <v-btn color="error" class="mt-4" @click="reset">Reset</v-btn>
                 </div>
             </v-form>
@@ -49,18 +49,20 @@
       valid: true,
       guard_name_select: null,
       items_guard_name: [
-        'ACTIVE',
-        'PASIVE',
-        'SUSPENDED',
-        'TERMINATED',
-      ],
-
-      route_select: null,
-      items_route: [
         'Test',
         'Test1',
         'Test2',
         'Test3',
+      ],
+
+      route_select: null,
+      items_route: [
+        'TP1',
+        'TP2',
+        'TP3',
+        'TP4',
+        'TP5',
+        'TP6',
       ],
 
       }),

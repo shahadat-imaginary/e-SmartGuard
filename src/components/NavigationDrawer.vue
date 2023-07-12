@@ -19,29 +19,29 @@
               <template v-slot:activator="{ props }">
                 <v-list-item v-bind="props" prepend-icon="mdi mdi-account-group" title="Users Management"></v-list-item>
               </template>
-              <v-list-item prepend-icon="mdi mdi-circle-outline" value="User List" title="User List" to="/form-advanced"></v-list-item>
-              <v-list-item prepend-icon="mdi mdi-circle-outline" value="User Change Password" title="Change Password" to="/user"></v-list-item>
+              <v-list-item prepend-icon="mdi mdi-circle-outline" value="User List" title="User List" to="/user"></v-list-item>
+              <v-list-item prepend-icon="mdi mdi-circle-outline" value="User Change Password" title="Change Password" to="/user-password-change"></v-list-item>
             </v-list-group>
             <v-list-group value="Guards Management">
               <template v-slot:activator="{ props }">
                 <v-list-item v-bind="props" prepend-icon="mdi mdi-shield-account" title="Guards Management"></v-list-item>
               </template>
-              <v-list-item prepend-icon="mdi mdi-circle-outline" value="Guard List" title="Guard List"></v-list-item>
-              <v-list-item prepend-icon="mdi mdi-circle-outline" value="Guard Change Password" title="Change Password"></v-list-item>
+              <v-list-item prepend-icon="mdi mdi-circle-outline" value="Guard List" title="Guard List" to="/guard"></v-list-item>
+              <v-list-item prepend-icon="mdi mdi-circle-outline" value="Guard Change Password" title="Change Password" to="/guard-password-change"></v-list-item>
             </v-list-group>
             <v-list-group value="Patrol Management">
               <template v-slot:activator="{ props }">
                 <v-list-item v-bind="props" prepend-icon="mdi mdi-podcast" title="Patrol Management"></v-list-item>
               </template>
-              <v-list-item prepend-icon="mdi mdi-circle-outline" value="Checkpoint List" title="Checkpoint List"></v-list-item>
-              <v-list-item prepend-icon="mdi mdi-circle-outline" value="Route List" title="Route List"></v-list-item>
-              <v-list-item prepend-icon="mdi mdi-circle-outline" value="Patrol List" title="Patrol List"></v-list-item>
+              <v-list-item prepend-icon="mdi mdi-circle-outline" value="Checkpoint List" title="Checkpoint List" to="/check-point"></v-list-item>
+              <v-list-item prepend-icon="mdi mdi-circle-outline" value="Route List" title="Route List" to="/route"></v-list-item>
+              <v-list-item prepend-icon="mdi mdi-circle-outline" value="Patrol List" title="Patrol List" to="/patrol"></v-list-item>
             </v-list-group>
             <v-list-group value="Reports">
               <template v-slot:activator="{ props }">
                 <v-list-item v-bind="props" prepend-icon="mdi mdi-folder-open" title="Reports"></v-list-item>
               </template>
-              <v-list-item prepend-icon="mdi mdi-circle-outline" value="Patrols Report" title="Patrols Report"></v-list-item>
+              <v-list-item prepend-icon="mdi mdi-circle-outline" value="Patrols Report" title="Patrols Report" to="/patrol-report"></v-list-item>
             </v-list-group>
             <v-list-group value="Administrator">
               <template v-slot:activator="{ props }">

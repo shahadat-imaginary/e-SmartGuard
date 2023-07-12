@@ -1,6 +1,6 @@
 <template>
     <v-card elevation="4">
-      <v-card-title>User Information</v-card-title>
+      <v-card-title>Check Point Information</v-card-title>
       <v-container>
           <v-sheet class="mx-auto">
 
@@ -17,7 +17,7 @@
                  :rules="[v => !!v || 'Longitude is required']" required variant="outlined"></v-text-field>
 
                 <div class="d-flex">
-                  <v-btn color="success" class="mt-4 mr-2" @click="validate">Validate</v-btn>
+                  <v-btn color="success" class="mt-4 mr-2" @click="validate">Save</v-btn>
                   <v-btn color="error" class="mt-4" @click="reset">Reset</v-btn>
                 </div>
             </v-form>

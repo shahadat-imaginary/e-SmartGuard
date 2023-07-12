@@ -7,10 +7,8 @@
                       <v-autocomplete
                           v-model="select"
                           :items="items"
-                          :rules="[v => !!v || 'Status is required']"
                           label="Status *"
                           variant="outlined"
-                          readonly
                       ></v-autocomplete>
                       <v-text-field
                         v-model="userId"
@@ -42,7 +40,7 @@
                   class="mt-4 mr-2"
                   @click="validate"
                 >
-                  Validate
+                  Save
                 </v-btn>
 
                 <v-btn

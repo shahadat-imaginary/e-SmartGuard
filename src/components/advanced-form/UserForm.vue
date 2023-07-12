@@ -56,7 +56,7 @@
                   class="mt-4 mr-2"
                   @click="validate"
                 >
-                  Validate
+                  Save
                 </v-btn>
 
                 <v-btn

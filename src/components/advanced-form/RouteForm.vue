@@ -1,6 +1,6 @@
 <template>
     <v-card elevation="4">
-      <v-card-title>User Information</v-card-title>
+      <v-card-title>Route Information</v-card-title>
       <v-container>
           <v-sheet class="mx-auto">
 

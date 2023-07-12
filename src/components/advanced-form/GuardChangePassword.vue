@@ -1,6 +1,6 @@
 <template>
     <v-card elevation="4">
-      <v-card-title>Guard Information</v-card-title>
+      <v-card-title>Change Password</v-card-title>
       <v-container>
           <v-sheet class="mx-auto">
             <v-form ref="form" v-model="valid" lazy-validation>
@@ -15,7 +15,7 @@
                 <v-text-field label="Confirm Password" v-model="confirmPassword" :rules="confirmPasswordRules.concat(passwordConfirmationRule)" type="password" required variant="outlined"></v-text-field>
 
                 <div class="d-flex">
-                  <v-btn color="success" class="mt-4 mr-2" @click="validate">Validate</v-btn>
+                  <v-btn color="success" class="mt-4 mr-2" @click="validate">Save</v-btn>
                   <v-btn color="error" class="mt-4" @click="reset">Reset</v-btn>
                 </div>
             </v-form>
