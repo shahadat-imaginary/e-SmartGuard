@@ -3,7 +3,7 @@
       <NavigationDrawer />
       <v-main>
         <Breadcrumbs />
-        <RouteForm />
+        <UserProfile />
         <Footerbar />
       </v-main>
   </v-app>
@@ -11,7 +11,7 @@
 
 <script setup>
 import NavigationDrawer from '@/components/NavigationDrawer.vue';
-import RouteForm from '@/components/advanced-form/RouteForm.vue';
+import UserProfile from '@/components/UserProfile.vue';
 import Footerbar from '@/components/Footer.vue';
 </script>
 
