@@ -26,6 +26,19 @@
                   :headers="headers"
                   :items="guardItems"
                   :search="search">
+
+                  <template v-slot:[`item.guardInformation`]="{ item }">
+                    {{(item.columns.guardInformation.guardId)}},
+                    {{(item.columns.guardInformation.fullName)}},
+                    {{(item.columns.guardInformation.mobileNo)}},
+                    {{(item.columns.guardInformation.rank_select)}}
+                  </template>
+
+                  <template v-slot:[`item.shiftTime`]="{ item }">
+                    {{(item.columns.shiftTime.startTime)}} -
+                    {{(item.columns.shiftTime.endTime)}}
+                  </template>
+
                     <template v-slot:[`item.actions`]="{ item }">
                       <v-icon size="small" class="me-2" @click="editItem(item.raw)">mdi-square-edit-outline</v-icon>
                       <v-icon size="small" @click="deleteItem(item.raw)">mdi-delete</v-icon>
@@ -40,20 +53,27 @@
           <v-card-text class="mt-3">
             <v-sheet class="mx-auto">
               <v-form ref="form" v-model="valid" lazy-validation>
-                <v-select v-model="editedItem.status" label="Status *" :items="statusItems" :rules="[v => !!v || 'Status is required']" variant="outlined" required></v-select>
+                <div v-if="!submitted">
+                <v-select v-model="editedItem.status" label="Status *" variant="outlined" required></v-select>
                 <v-text-field v-model="editedItem.guardInformation.guardId" label="Guard ID*" type="number" variant="outlined" required></v-text-field>
-                <v-text-field v-model="editedItem.guardInformation.fullName" label="Full Name *" :rules="[v => !!v || 'Full Name is required']" variant="outlined" required></v-text-field>
-                <v-select v-model="editedItem.guardInformation.rank_select" label="Rank *" :items="rank_select" :rules="[v => !!v || 'Rank is required']" variant="outlined" required></v-select>
-                <v-select v-model="editedItem.supervisor_select" label="Supervisor" :items="items_supervisor" :rules="[v => !!v || 'Supervisor is required']" variant="outlined" required></v-select>
+                <v-text-field v-model="editedItem.guardInformation.fullName" label="Full Name *" variant="outlined" required></v-text-field>
+                <v-select v-model="editedItem.guardInformation.rank_select" label="Rank *" :items="rank_select" variant="outlined" required></v-select>
+                <v-select v-model="editedItem.supervisor_select" label="Supervisor" :items="items_supervisor" variant="outlined" required></v-select>
                 <v-text-field v-model="editedItem.guardInformation.mobileNo" label="Mobile No. *" :type="Number" variant="outlined" required></v-text-field>
                 <v-text-field v-model="editedItem.email" label="Email" type="email" variant="outlined" required></v-text-field>
-                <v-text-field v-model="editedItem.shiftTime.startTime" label="Start Time *" :rules="[v => !!v || 'Start Time is required']" variant="outlined" required></v-text-field>
-                <v-text-field v-model="editedItem.shiftTime.endTime" label="End Time *" :rules="[v => !!v || 'End Time is required']" variant="outlined" required></v-text-field>
+                <v-text-field v-model="editedItem.shiftTime.startTime" label="Start Time *" variant="outlined" required></v-text-field>
+                <v-text-field v-model="editedItem.shiftTime.endTime" label="End Time *" variant="outlined" required></v-text-field>
+
 
                 <div class="d-flex">
                   <v-btn color="success" class="mt-4 mr-2" @click="save">Save</v-btn>
                   <v-btn color="error" class="mt-4" @click="reset">Reset</v-btn>
                 </div>
+              </div>
+              <div v-else>
+                  <h4>You submitted successfully!</h4>
+                  <button class="btn btn-success" @click="newTutorial">Add</button>
+              </div>
               </v-form>
             </v-sheet>
           </v-card-text>
@@ -77,6 +97,9 @@
 </template>
 
 <script>
+
+// import GuardDataServicem from "../services/GuardDataService";
+
 export default {
 data: () => ({
   dialog: false,
@@ -103,7 +126,6 @@ data: () => ({
       { key: 'guardInformation', title: 'Guard Information'},
       { key: 'shiftTime', title: 'Shift Time' },
       { key: 'status', title: 'Status' },
-      { key: 'email', title: 'Email' },
       { key: 'actions', title: 'Actions', sortable: false },
   ],
   guardItems: [],
@@ -144,18 +166,6 @@ created () {
 methods: {
   initialize () {
     this.guardItems = [
-          {
-            id: 11,
-            guardInformation: '030925052521, AHMAD BIN KAMARUDIN, 010-1234567, GUARD',
-            supervisor_select: 'TS1',
-            email: 'test@test.com',
-            shiftTime: '07:00am, - 04:00pm',
-            // shiftTime: [
-            //   {startTime: '07:00am'},
-            //   {endTime: ' - 04:00pm'},
-            // ],
-            status: 'PASIVE',
-          },
           {
             id: 1,
             guardInformation: { guardId: '030925052521', fullName: 'AHMAD BIN KAMARUDIN', mobileNo: '010-1234567', rank_select: 'GUARD',},
@@ -251,6 +261,24 @@ methods: {
       this.guardItems.push(this.editedItem)
     }
     this.close()
+    // var data = {
+    //     name: this.guards.name,
+    //     status: this.guards.status,
+    //     role: this.guards.role,
+    //     position: this.guards.position,
+    //     userName: this.guards.userName,
+    //     email: this.guards.email,
+    //   };
+
+    //   GuardDataService.create(data)
+    //     .then(response => {
+    //       this.guards.id = response.data.id;
+    //       console.log(response.data);
+    //       this.submitted = true;
+    //     })
+    //     .catch(e => {
+    //       console.log(e);
+    //     });
   },
 },
 }
