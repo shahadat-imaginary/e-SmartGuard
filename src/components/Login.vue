@@ -1,19 +1,3 @@
-<!-- <template>
-    <div class="d-flex align-center justify-center" style="height: 100vh">
-        <v-sheet width="400" class="mx-auto">
-            <v-form fast-fail @submit.prevent="login">
-                <v-text-field prepend-icon="mdi mdi-view-dashboard" v-model="username" label="User Name"></v-text-field>
-
-                <v-text-field prepend-icon="mdi mdi-view-dashboard" v-model="password" label="password"></v-text-field>
-                <a href="#" class="text-body-2 font-weight-regular">Forgot Password?</a>
-
-                <v-btn type="submit" color="primary" block class="mt-2" to="/">Sign in</v-btn>
-
-            </v-form>
-        </v-sheet>
-    </div>
-</template> -->
-
 <template>
     <div style="align-items: center;
     background-color: #e9ecef;
@@ -28,16 +12,16 @@
       <v-contain style="height: 163px;">
         <v-img cover src="../assets/logo.webp"></v-img>
     </v-contain>
-      <v-form
+      <v-form @submit.prevent="submitForm"
         ref="form"
         v-model="isValid"
         class="pt-4"
       >
-        <v-text-field append-inner-icon="mdi mdi-account" :rules="[rules.required]" v-model="username" label="MyKad No." variant="outlined"></v-text-field>
-        <v-text-field append-inner-icon="mdi mdi-lock" :rules="[rules.required]" v-model="password" label="password" variant="outlined"></v-text-field>
+        <v-text-field append-inner-icon="mdi mdi-account" v-model="email" label="MyKad No." variant="outlined"></v-text-field>
+        <v-text-field append-inner-icon="mdi mdi-lock" v-model="password" label="password" variant="outlined"></v-text-field>
         <v-checkbox class="d-flex justify-center"
           v-model="agreement"
-          :rules="[rules.required]"
+          :rules="[v => !!v || 'You must agree to continue!']"
           color="deep-purple"
         >
           <template v-slot:label>
@@ -48,8 +32,7 @@
 
       <v-card-actions class="d-flex justify-center">
         <v-btn style="color: #fff; background-color: #218838; border-color: #1e7e34;"
-          :disabled="!isValid"
-          :loading="isLoading" to="/"
+          :loading="isLoading" @click="login" :type="submit"
         >
           Submit
         </v-btn>
@@ -62,10 +45,11 @@
   </template>
 
 <script>
+import axios from 'axios';
 export default {
     data() {
         return {
-            username: '',
+            email: '',
             password: '',
             isValid: false,
             isLoading: false,
@@ -76,13 +60,31 @@ export default {
         };
     },
     methods: {
-        login() {
-            // Your login logic here  
-            if(this.username == "840412025055" || this.password == "123"){
-                console.log("authenticated")
-            }else{
-                console.log("Username and Password can not be empty")
-            }
+        async login() {
+          const credentials = {
+            email: this.email,
+            password: this.password,
+          };
+
+          try {
+            // Replace 'api-url' with the actual URL of your authentication endpoint.
+            const {data} = await axios.post('http://shahadat001-001-site1.ctempurl.com/api/users/login', credentials);
+            console.log('test:', data);
+
+            // Assuming the API returns a token in the response data upon successful authentication.
+            const token = data.data.token;
+
+            // Store the token in local storage for future API requests.
+            localStorage.setItem('token', JSON.stringify(token));
+
+            // You can redirect the user to a new page or handle the successful login as per your application flow.
+            // For example:
+            this.$router.push('/');
+
+          } catch (error) {
+            console.error('Login failed:', error);
+            // Handle login error here, such as showing an error message to the user.
+          }
         },
     },
 }

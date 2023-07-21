@@ -21,8 +21,14 @@ const routes = [
         component: () => import('@/views/Login.vue'),
       },
       {
-        path: '/user',
+        path: '/users',
         name: 'User Form',
+        // component: User FormVue,
+        component: () => import('@/views/User-form-view.vue'),
+      },
+      {
+        path: '/users/:id',
+        name: 'User Details',
         // component: User FormVue,
         component: () => import('@/views/User-form-view.vue'),
       },
@@ -33,7 +39,7 @@ const routes = [
         component: () => import('@/views/User-password-change-form-view.vue'),
       },
       {
-        path: '/guard',
+        path: '/guards',
         name: 'Guard Form',
         // component: Guard FormVue,
         component: () => import('@/views/Guard-form-view.vue'),

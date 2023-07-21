@@ -19,14 +19,14 @@
               <template v-slot:activator="{ props }">
                 <v-list-item v-bind="props" prepend-icon="mdi mdi-account-group" title="Users Management"></v-list-item>
               </template>
-              <v-list-item prepend-icon="mdi mdi-circle-outline" value="User List" title="User List" to="/user"></v-list-item>
+              <v-list-item prepend-icon="mdi mdi-circle-outline" value="User List" title="User List" to="/users"></v-list-item>
               <v-list-item prepend-icon="mdi mdi-circle-outline" value="User Change Password" title="Change Password" to="/user-password-change"></v-list-item>
             </v-list-group>
             <v-list-group value="Guards Management">
               <template v-slot:activator="{ props }">
                 <v-list-item v-bind="props" prepend-icon="mdi mdi-shield-account" title="Guards Management"></v-list-item>
               </template>
-              <v-list-item prepend-icon="mdi mdi-circle-outline" value="Guard List" title="Guard List" to="/guard"></v-list-item>
+              <v-list-item prepend-icon="mdi mdi-circle-outline" value="Guard List" title="Guard List" to="/guards"></v-list-item>
               <v-list-item prepend-icon="mdi mdi-circle-outline" value="Guard Change Password" title="Change Password" to="/guard-password-change"></v-list-item>
             </v-list-group>
             <v-list-group value="Patrol Management">
