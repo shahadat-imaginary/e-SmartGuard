@@ -27,8 +27,8 @@
                   :items="checkPointItems"
                   :search="search">
                     <template v-slot:[`item.actions`]="{ item }">
-                      <v-icon size="small" class="me-2" @click="editItem(item.raw)">mdi-square-edit-outline</v-icon>
-                      <v-icon size="small" @click="deleteItem(item.raw)">mdi-delete</v-icon>
+                      <v-icon size="small" class="me-2" @click="editItem(item.columns.id)">mdi-square-edit-outline</v-icon>
+                      <v-icon size="small" @click="deleteItem(item.columns.id)">mdi-delete</v-icon>
                     </template>
                 </v-data-table>
               </v-card-item>
@@ -39,31 +39,26 @@
           <v-card-title>Check Point Information</v-card-title>
           <v-card-text class="mt-3">
             <v-sheet class="mx-auto">
-              <v-form ref="form" v-model="valid" lazy-validation>
-                <v-text-field v-model="editedItem.checkPointName" label="Check Point Name *" :rules="[v => !!v || 'Check Point Name is required']" variant="outlined" required></v-text-field>
-                <v-text-field v-model="editedItem.lalitude" label="Lalitude *" :type="Number" :rules="[v => !!v || 'Lalitude is required']" variant="outlined" required></v-text-field>
-                <v-text-field v-model="editedItem.longitude" label="Longitude *" :type="Number" :rules="[v => !!v || 'Longitude is required']" required variant="outlined"></v-text-field>
+              <div v-if="!submitted">
+                <v-form ref="form" @submit.prevent="save" v-model="valid" lazy-validation>
+                  <v-text-field v-model="checkItem.name" label="Check Point Name *" :rules="[v => !!v || 'Check Point Name is required']" variant="outlined" required></v-text-field>
+                  <v-text-field v-model="checkItem.latitude" label="Lalitude *" :type="Number" :rules="[v => !!v || 'Lalitude is required']" variant="outlined" required></v-text-field>
+                  <v-text-field v-model="checkItem.longitude" label="Longitude *" :type="Number" :rules="[v => !!v || 'Longitude is required']" required variant="outlined"></v-text-field>
 
-                <div class="d-flex">
-                  <v-btn color="success" class="mt-4 mr-2" @click="save">Save</v-btn>
-                  <v-btn color="error" class="mt-4" @click="reset">Reset</v-btn>
-                </div>
-              </v-form>
+                  <div class="d-flex">
+                    <v-btn color="success" class="mt-4 mr-2" @click="save">Save</v-btn>
+                    <v-btn color="error" class="mt-4" @click="reset">Reset</v-btn>
+                  </div>
+                </v-form>
+            </div>
+            <div v-else>
+              <v-card class="mx-auto">
+                <v-card-title>Submitted successfully!</v-card-title>
+              </v-card>
+            </div>
             </v-sheet>
           </v-card-text>
         </v-card>
-
-        <v-dialog v-model="dialogDelete" max-width="500px">
-          <v-card class="mx-auto">
-            <v-card-item class="text-h6">Are you sure you want to delete this item?</v-card-item>
-            <v-card-actions>
-              <v-spacer></v-spacer>
-              <v-btn color="blue-darken-1" variant="text" @click="closeDelete">Cancel</v-btn>
-              <v-btn color="blue-darken-1" variant="text" @click="deleteItemConfirm">OK</v-btn>
-              <v-spacer></v-spacer>
-            </v-card-actions>
-          </v-card>
-        </v-dialog>
 
       </v-col>
     </v-row>
@@ -71,165 +66,93 @@
 </template>
 
 <script>
+import userRequest from '@/axios/request';
+
 export default {
 data: () => ({
-  dialog: false,
-  dialogDelete: false,
   search: '',
   headers: [
-      { key: 'id', title: '#', align: 'start', sortable: false, },
-      { key: 'checkPointName', title: 'Check Point Name' },
-      { key: 'lalitude', title: 'Lalitude' },
+      { key: 'id', title: '#', align: ' d-none' },
+      { key: 'name', title: 'Check Point Name' },
+      { key: 'latitude', title: 'Lalitude' },
       { key: 'longitude', title: 'Longitude' },
       { key: 'actions', title: 'Actions', sortable: false },
   ],
   checkPointItems: [],
-  editedIndex: -1,
-  editedItem: {
+
+  checkItem: {
     id: null,
-    checkPointName: '',
-    lalitude: null,
+    name: '',
+    latitude: null,
     longitude: null,
   },
-  defaultItem: {
+  defaultcheckItem: {
     id: null,
-    checkPointName: '',
-    lalitude: null,
+    name: '',
+    latitude: null,
     longitude: null,
   },
+  submitted: false,
 }),
 
-watch: {
-  dialog (val) {
-    val || this.close()
-  },
-  dialogDelete (val) {
-    val || this.closeDelete()
-  },
-},
-
-created () {
-  this.initialize()
-},
 
 methods: {
-  initialize () {
-    this.checkPointItems = [
-          {
-            id: 1,
-            checkPointName: 'TP1',
-            lalitude: 11.222,
-            longitude: 58.220,
-          },
-          {
-            id: 2,
-            checkPointName: 'TP2',
-            lalitude: 250.33,
-            longitude: 11.2235,
-          },
-          {
-            id: 3,
-            checkPointName: 'TP3',
-            lalitude: 10.54,
-            longitude: 20.548,
-          },
-          {
-            id: 4,
-            checkPointName: 'TP4',
-            lalitude: 220.225,
-            longitude: 54.22,
-          },
-          {
-            id: 5,
-            checkPointName: 'TP6',
-            lalitude: 182.041,
-            longitude: 12.3456789,
-          },
-          {
-            id: 6,
-            checkPointName: 'TP7',
-            lalitude: 118.22,
-            longitude: 123.456789,
-          },
-          {
-            id: 7,
-            checkPointName: 'TP8',
-            lalitude: 61.33,
-            longitude: 145.6789,
-          },
-          {
-            id: 8,
-            checkPointName: 'TP9',
-            lalitude: 19.22,
-            longitude: 12.89,
-          },
-          {
-            id: 9,
-            checkPointName: 'TP10',
-            lalitude: 116.22,
-            longitude: 15.6789,
-          },
-          {
-            id: 10,
-            checkPointName: 'TP11',
-            lalitude: 11.69,
-            longitude: 16.789,
-          },
-          {
-            id: 11,
-            checkPointName: 'TP12',
-            lalitude: 94.56,
-            longitude: 56.02789,
-          },
-    ]
+
+  async save() {
+    let checkPointCreate = {
+      name: this.checkItem.checkPointName,
+      latitude: this.checkItem.latitude,
+      longitude: this.checkItem.longitude,
+    };
+
+    userRequest.post('/checkpoints', checkPointCreate)
+        .then((response) => {
+          this.checkItem.id = response.data.id;
+          console.log(response.data);
+          this.submitted = true;
+          this.refreshList();
+        })
+        .catch((e) => {
+          console.log(e);
+        });
   },
 
-  editItem (item) {
-    this.editedIndex = this.checkPointItems.indexOf(item)
-    this.editedItem = Object.assign({}, item)
-  },
+  retrieveUsers() {
+      userRequest.get('/checkpoints')
+        .then((response) => {
+          this.checkPointItems = response.data.data.data;
+          console.log("get", response.data);
+        })
+        .catch((e) => {
+          console.log(e);
+        });
+    },
 
-  deleteItem (item) {
-    this.editedIndex = this.checkPointItems.indexOf(item)
-    this.editedItem = Object.assign({}, item)
-    this.dialogDelete = true
+  refreshList() {
+    this.retrieveUsers();
   },
-
-  deleteItemConfirm () {
-    this.checkPointItems.splice(this.editedIndex, 1)
-    this.closeDelete()
-  },
-
 
   reset () {
-      this.$refs.form.reset()
+    this.$refs.form.reset()
   },
 
-  close () {
-    this.dialog = false
-    this.$nextTick(() => {
-      this.editedItem = Object.assign({}, this.defaultItem)
-      this.editedIndex = -1
-    })
+  editItem (id) {
+    userRequest.get('/checkpoints/'+id)
+        .then((response) => {
+          this.checkItem = response.data.data;
+          console.log("get details", response.data);
+        })
+        .catch((e) => {
+          console.log(e);
+        });
   },
 
-  closeDelete () {
-    this.dialogDelete = false
-    this.$nextTick(() => {
-      this.editedItem = Object.assign({}, this.defaultItem)
-      this.editedIndex = -1
-    })
-  },
-
-  async save () {
-    if (this.editedIndex > -1) {
-      Object.assign(this.checkPointItems[this.editedIndex], this.editedItem)
-    } else {
-      this.checkPointItems.push(this.editedItem)
-    }
-    this.close()
-  },
 },
+
+mounted() {
+    this.retrieveUsers();
+},
+
 }
 </script>
 

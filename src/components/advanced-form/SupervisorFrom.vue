@@ -4,7 +4,7 @@
       <v-col md="7" sm="12">
           <v-card>
               <v-toolbar>
-                <v-toolbar-title>Route List</v-toolbar-title>
+                <v-toolbar-title>Supervisor List</v-toolbar-title>
               </v-toolbar>
 
               <v-card-title>
@@ -24,7 +24,7 @@
               <v-card-item>
                 <v-data-table
                   :headers="headers"
-                  :items="routeItems"
+                  :items="userItems"
                   :search="search">
                     <template v-slot:[`item.actions`]="{ item }">
                       <v-icon size="small" class="me-2" @click="editItem(item.columns.id)">mdi-square-edit-outline</v-icon>
@@ -36,18 +36,29 @@
       </v-col>
       <v-col md="5" sm="12">
         <v-card elevation="4">
-          <v-card-title>Route Information</v-card-title>
+          <v-card-title>Supervisor Information</v-card-title>
           <v-card-text class="mt-3">
             <v-sheet class="mx-auto">
-              <v-form ref="form" v-model="valid" lazy-validation>
-                <v-text-field v-model="route.name" label="Check Point Name *" :rules="[v => !!v || 'Check Point Name is required']" variant="outlined" required></v-text-field>
-                <v-select v-model="route.routeCheckpoints" label="Check Point *" :items="route_Checkpoints" multiple :rules="[v => !!v || 'Check Point is required']" variant="outlined" required persistent-hint></v-select>
+              <div v-if="!submitted">
+              <v-form ref="form" @submit.prevent="save" lazy-validation>
+                <v-text-field v-model="user.name" label="Name *" variant="outlined" required></v-text-field>
+                <v-text-field v-model="user.phoneNumber" label="Mobile No. *" :type="Number" variant="outlined" required></v-text-field>
+                <v-text-field v-model="user.email" label="Email" type="email" variant="outlined" required></v-text-field>
+                <v-text-field label="Password" v-model="user.password" type="password" required variant="outlined"></v-text-field>
+                <v-text-field label="Confirm Password" v-model="user.confirmPassword" type="password" required variant="outlined"></v-text-field>
 
                 <div class="d-flex">
-                  <v-btn color="success" class="mt-4 mr-2" @click="save">Save</v-btn>
+                  <v-btn color="success" class="mt-4 mr-2" type="submit">Save</v-btn>
+                  <v-btn color="success" class="mt-4 mr-2" type="submit" @click="update">update</v-btn>
                   <v-btn color="error" class="mt-4" @click="reset">Reset</v-btn>
                 </div>
               </v-form>
+            </div>
+            <div v-else>
+              <v-card class="mx-auto">
+                <v-card-title>Submitted successfully!</v-card-title>
+              </v-card>
+            </div>
             </v-sheet>
           </v-card-text>
         </v-card>
@@ -63,36 +74,50 @@ import userRequest from '@/axios/request';
 export default {
 data: () => ({
   search: '',
+
   headers: [
       { key: 'id', title: '#', align: ' d-none' },
-      { key: 'name', title: 'Route Name' },
-      { key: 'routeCheckpoints', title: 'Check Point List' },
+      { key: 'name', title: 'Name' },
+      { key: 'phoneNumber', title: 'Mobile No.', sortable: false },
+      { key: 'email', title: 'Email' },
       { key: 'actions', title: 'Actions', sortable: false },
   ],
-  routeItems: [],
-  route_Checkpoints: [],
-  route: {
+  userItems: [],
+
+  user: {
     id: null,
     name: '',
-    routeCheckpoints: null,
+    phoneNumber: null,
+    email: '',
+    password: '',
+    confirmPassword: '',
   },
-  defaultRoute: {
+  defaultuser: {
     id: null,
     name: '',
-    routeCheckpoints: null,
+    phoneNumber: null,
+    email: '',
+    password: '',
+    confirmPassword: '',
   },
+  submitted: false,
 }),
 
+
 methods: {
+
   async save() {
-    let checkPointCreate = {
-      name: this.route.name,
-      routeCheckpoints: this.route.routeCheckpoints,
+    let supervisorCreate = {
+      name: this.user.name,
+      phoneNumber: this.user.phoneNumber,
+      email: this.user.email,
+      password: this.user.password,
+      confirmPassword: this.user.confirmPassword,
     };
 
-    userRequest.post('/routes', checkPointCreate)
+    userRequest.post('/supervisors', supervisorCreate)
         .then((response) => {
-          this.routeItems.id = response.data.id;
+          this.user.id = response.data.id;
           console.log(response.data);
           this.submitted = true;
           this.refreshList();
@@ -102,10 +127,23 @@ methods: {
         });
   },
 
+  update() {
+      // userRequest.put('/user/${this.editItem.id}', this.editItem)
+      userRequest.put(this.userItems[this.editItem], this.editItem)
+        .then(response => {
+          this.user = response.data.data;
+          console.log(response.data);
+          this.message = 'The tutorial was updated successfully!';
+        })
+        .catch(e => {
+          console.log(e);
+        });
+    },
+
   retrieveUsers() {
-      userRequest.get('/routes')
+      userRequest.get('/supervisors')
         .then((response) => {
-          this.routeItems = response.data.data.data;
+          this.userItems = response.data.data.data;
           console.log("get", response.data);
         })
         .catch((e) => {
@@ -122,9 +160,9 @@ methods: {
   },
 
   editItem (id) {
-    userRequest.get('/routes/'+id)
+    userRequest.get('/supervisors/'+id)
         .then((response) => {
-          this.route = response.data.data;
+          this.user = response.data.data;
           console.log("get details", response.data);
         })
         .catch((e) => {
@@ -132,15 +170,15 @@ methods: {
         });
   },
 
-},
+  },
 
-mounted() {
+  mounted() {
     this.retrieveUsers();
-},
+  },
 
 }
 </script>
 
-  <style scoped>
+<style scoped>
 
-  </style>
+</style>

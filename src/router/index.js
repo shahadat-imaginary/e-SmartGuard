@@ -39,6 +39,12 @@ const routes = [
         component: () => import('@/views/User-password-change-form-view.vue'),
       },
       {
+        path: '/supervisors',
+        name: 'Supervisor Form',
+        // component: Supervisor FormVue,
+        component: () => import('@/views/Supervisor-form-view.vue'),
+      },
+      {
         path: '/guards',
         name: 'Guard Form',
         // component: Guard FormVue,
@@ -51,13 +57,13 @@ const routes = [
         component: () => import('@/views/Guard-password-change-form-view.vue'),
       },
       {
-        path: '/check-point',
+        path: '/checkpoints',
         name: 'Check Point',
         // component: Check PointVue,
         component: () => import('@/views/Check-point-view.vue'),
       },
       {
-        path: '/route',
+        path: '/routes',
         name: 'Route',
         // component: RouteVue,
         component: () => import('@/views/Route-view.vue'),
