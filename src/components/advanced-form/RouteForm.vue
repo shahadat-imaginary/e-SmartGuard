@@ -41,7 +41,7 @@
             <v-sheet class="mx-auto">
               <v-form ref="form" v-model="valid" lazy-validation>
                 <v-text-field v-model="route.name" label="Check Point Name *" :rules="[v => !!v || 'Check Point Name is required']" variant="outlined" required></v-text-field>
-                <v-select v-model="route.routeCheckpoints" label="Check Point *" :items="route_Checkpoints" multiple :rules="[v => !!v || 'Check Point is required']" variant="outlined" required persistent-hint></v-select>
+                <v-select v-model="selectedCheckpoint" label="Check Point *" :items="checkpoints" item-value="id" item-title="name" multiple :rules="[v => !!v || 'Check Point is required']" variant="outlined" required persistent-hint></v-select>
 
                 <div class="d-flex">
                   <v-btn color="success" class="mt-4 mr-2" @click="save">Save</v-btn>
@@ -69,8 +69,9 @@ data: () => ({
       { key: 'routeCheckpoints', title: 'Check Point List' },
       { key: 'actions', title: 'Actions', sortable: false },
   ],
+  selectedCheckpoint: [],
   routeItems: [],
-  route_Checkpoints: [],
+  checkpoints: [],
   route: {
     id: null,
     name: '',
@@ -90,22 +91,37 @@ methods: {
       routeCheckpoints: this.route.routeCheckpoints,
     };
 
-    userRequest.post('/routes', checkPointCreate)
-        .then((response) => {
-          this.routeItems.id = response.data.id;
-          console.log(response.data);
-          this.submitted = true;
-          this.refreshList();
-        })
-        .catch((e) => {
-          console.log(e);
-        });
+    console.log(this.selectedCheckpoint)
+
+    // userRequest.post('/routes', checkPointCreate)
+    //     .then((response) => {
+    //       this.routeItems.id = response.data.id;
+    //       console.log(response.data);
+    //       this.submitted = true;
+    //       this.refreshList();
+    //     })
+    //     .catch((e) => {
+    //       console.log(e);
+    //     });
   },
 
   retrieveUsers() {
       userRequest.get('/routes')
         .then((response) => {
           this.routeItems = response.data.data.data;
+          console.log("get", response.data);
+        })
+        .catch((e) => {
+          console.log(e);
+        });
+    },
+
+  
+
+   retrieveCheckpoints() {
+      userRequest.get('/checkpoints')
+        .then((response) => {
+          this.checkpoints = response.data.data.data;
           console.log("get", response.data);
         })
         .catch((e) => {
@@ -136,6 +152,7 @@ methods: {
 
 mounted() {
     this.retrieveUsers();
+    this.retrieveCheckpoints();
 },
 
 }
