@@ -45,12 +45,16 @@
                 <v-text-field v-model="user.phoneNumber" label="Mobile No. *" :type="Number" variant="outlined" required></v-text-field>
                 <v-text-field v-model="user.position" label="Position *" variant="outlined" required></v-text-field>
                 <v-text-field v-model="user.email" label="Email" type="email" variant="outlined" required></v-text-field>
-                <v-text-field label="Password" v-model="user.password" type="password" required variant="outlined"></v-text-field>
-                <v-text-field label="Confirm Password" v-model="user.confirmPassword" type="password" required variant="outlined"></v-text-field>
+                <div v-if="!editing">
+                  <v-text-field label="Password" v-model="user.password" type="password" required variant="outlined"></v-text-field>
+                  <v-text-field label="Confirm Password" v-model="user.confirmPassword" type="password" required variant="outlined"></v-text-field>
+                </div>
+                <div v-if="editing">
+                  <v-select v-model="user.status" label="Status *" :items="status" variant="outlined" required></v-select>
+                </div>
 
                 <div class="d-flex">
                   <v-btn color="success" class="mt-4 mr-2" type="submit">Save</v-btn>
-                  <v-btn color="success" class="mt-4 mr-2" type="submit" @click="update">update</v-btn>
                   <v-btn color="error" class="mt-4" @click="reset">Reset</v-btn>
                 </div>
               </v-form>
@@ -75,7 +79,6 @@ import userRequest from '@/axios/request';
 export default {
 data: () => ({
   search: '',
-
   headers: [
       { key: 'id', title: '#', align: ' d-none' },
       { key: 'name', title: 'Name' },
@@ -86,6 +89,8 @@ data: () => ({
   ],
   userItems: [],
 
+  editing: false,
+  status:['Active', 'Inactive'],
   user: {
     id: null,
     name: '',
@@ -94,6 +99,7 @@ data: () => ({
     email: '',
     password: '',
     confirmPassword: '',
+    status: '',
   },
   defaultuser: {
     id: null,
@@ -103,6 +109,7 @@ data: () => ({
     email: '',
     password: '',
     confirmPassword: '',
+    status: '',
   },
   submitted: false,
 }),
@@ -111,44 +118,50 @@ data: () => ({
 methods: {
 
   async save() {
-    let userCreate = {
-      name: this.user.name,
-      phoneNumber: this.user.phoneNumber,
-      position: this.user.position,
-      email: this.user.email,
-      password: this.user.password,
-      confirmPassword: this.user.confirmPassword,
-    };
+    if (this.user.id) {
+        // If ID is present, update data using the API
+        this.update(this.user.id);
+        this.submitted = true;
+        setTimeout(() => {this.reset();}, 2000);
+      } else {
+      let userCreate = {
+        name: this.user.name,
+        phoneNumber: this.user.phoneNumber,
+        position: this.user.position,
+        email: this.user.email,
+        password: this.user.password,
+        confirmPassword: this.user.confirmPassword,
+      };
 
-    userRequest.post('/users', userCreate)
-        .then((response) => {
-          this.user.id = response.data.id;
-          console.log(response.data);
-          this.submitted = true;
-          this.refreshList();
-        })
-        .catch((e) => {
-          console.log(e);
-        });
-
-    // userRequest.put('/user/${this.editItem.id}', this.editItem)
-    //     .then((response) => {
-    //       // this.user.id = response.data.id;
-    //       console.log(response.data);
-    //       this.message = 'The user was updated successfully!'
-    //       this.submitted = true;
-    //     })
-    //     .catch((e) => {
-    //       console.log(e);
-    //     });
+      userRequest.post('/users', userCreate)
+          .then((response) => {
+            this.user.id = response.data.id;
+            console.log(response.data);
+            this.submitted = true;
+            setTimeout(() => {
+              this.reset();
+            }, 2000);
+            this.retrieveUsers();
+          })
+          .catch((e) => {
+            console.log(e);
+          });
+      }
   },
 
-  update() {
-      userRequest.put(this.userItems[this.editItem], this.editItem)
+  update(id) {
+      let userUpdate = {
+        name: this.user.name,
+        phoneNumber: this.user.phoneNumber,
+        position: this.user.position,
+        email: this.user.email,
+        status: this.user.status,
+      };
+      this.editing = false;
+      userRequest.put(`/users/${id}`, userUpdate)
         .then(response => {
           this.user = response.data.data;
           console.log(response.data);
-          this.message = 'The user was updated successfully!';
         })
         .catch(e => {
           console.log(e);
@@ -171,11 +184,15 @@ methods: {
   },
 
   reset () {
-    this.$refs.form.reset()
+    this.user = this.defaultuser;
+    this.editing = false;
+    this.submitted= false;
+    this.$refs.form.reset();
   },
 
   editItem (id) {
-    userRequest.get('/users/'+id)
+    this.editing= true;
+    userRequest.get(`/users/${id}`)
         .then((response) => {
           this.user = response.data.data;
           console.log("get details", response.data);
