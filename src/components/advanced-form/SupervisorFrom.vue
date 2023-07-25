@@ -44,12 +44,16 @@
                 <v-text-field v-model="user.name" label="Name *" variant="outlined" required></v-text-field>
                 <v-text-field v-model="user.phoneNumber" label="Mobile No. *" :type="Number" variant="outlined" required></v-text-field>
                 <v-text-field v-model="user.email" label="Email" type="email" variant="outlined" required></v-text-field>
-                <v-text-field label="Password" v-model="user.password" type="password" required variant="outlined"></v-text-field>
-                <v-text-field label="Confirm Password" v-model="user.confirmPassword" type="password" required variant="outlined"></v-text-field>
+                <div v-if="!editing">
+                  <v-text-field label="Password" v-model="user.password" type="password" required variant="outlined"></v-text-field>
+                  <v-text-field label="Confirm Password" v-model="user.confirmPassword" type="password" required variant="outlined"></v-text-field>
+                </div>
+                <div v-if="editing">
+                  <v-select v-model="user.status" label="Status *" :items="this.status" variant="outlined" required></v-select>
+                </div>
 
                 <div class="d-flex">
                   <v-btn color="success" class="mt-4 mr-2" type="submit">Save</v-btn>
-                  <v-btn color="success" class="mt-4 mr-2" type="submit" @click="update">update</v-btn>
                   <v-btn color="error" class="mt-4" @click="reset">Reset</v-btn>
                 </div>
               </v-form>
@@ -80,9 +84,13 @@ data: () => ({
       { key: 'name', title: 'Name' },
       { key: 'phoneNumber', title: 'Mobile No.', sortable: false },
       { key: 'email', title: 'Email' },
+      { key: 'status', title: 'Status' },
       { key: 'actions', title: 'Actions', sortable: false },
   ],
+
   userItems: [],
+  editing: false,
+  status:['Active', 'Inactive'],
 
   user: {
     id: null,
@@ -91,6 +99,7 @@ data: () => ({
     email: '',
     password: '',
     confirmPassword: '',
+    status: '',
   },
   defaultuser: {
     id: null,
@@ -99,6 +108,7 @@ data: () => ({
     email: '',
     password: '',
     confirmPassword: '',
+    status: '',
   },
   submitted: false,
 }),
@@ -107,38 +117,53 @@ data: () => ({
 methods: {
 
   async save() {
-    let supervisorCreate = {
-      name: this.user.name,
-      phoneNumber: this.user.phoneNumber,
-      email: this.user.email,
-      password: this.user.password,
-      confirmPassword: this.user.confirmPassword,
-    };
+    if (this.user.id) {
+        // If ID is present, update data using the API
+        this.update(this.user.id);
+        this.submitted = true;
+        this.refreshList();
+        setTimeout(() => {this.reset();}, 2000);
+      } else {
+      let supervisorCreate = {
+        name: this.user.name,
+        phoneNumber: this.user.phoneNumber,
+        email: this.user.email,
+        password: this.user.password,
+        confirmPassword: this.user.confirmPassword,
+      };
 
-    userRequest.post('/supervisors', supervisorCreate)
-        .then((response) => {
-          this.user.id = response.data.id;
-          console.log(response.data);
-          this.submitted = true;
-          this.refreshList();
-        })
-        .catch((e) => {
-          console.log(e);
-        });
+      userRequest.post('/supervisors', supervisorCreate)
+          .then((response) => {
+            this.user.id = response.data.id;
+            console.log(response.data);
+            this.submitted = true;
+            this.refreshList();
+            setTimeout(() => {this.reset();}, 2000);
+          })
+          .catch((e) => {
+            console.log(e);
+          });
+      }
   },
 
-  update() {
-      // userRequest.put('/user/${this.editItem.id}', this.editItem)
-      userRequest.put(this.userItems[this.editItem], this.editItem)
-        .then(response => {
-          this.user = response.data.data;
-          console.log(response.data);
-          this.message = 'The tutorial was updated successfully!';
-        })
-        .catch(e => {
-          console.log(e);
-        });
-    },
+  update(id) {
+    let userUpdate = {
+      name: this.user.name,
+      phoneNumber: this.user.phoneNumber,
+      position: this.user.position,
+      email: this.user.email,
+      status: this.user.status,
+    };
+    this.editing = false;
+    userRequest.put(`/supervisors/${id}`, userUpdate)
+      .then(response => {
+        this.user = response.data.data;
+        console.log(response.data);
+      })
+      .catch(e => {
+        console.log(e);
+      });
+  },
 
   retrieveUsers() {
       userRequest.get('/supervisors')
@@ -149,18 +174,21 @@ methods: {
         .catch((e) => {
           console.log(e);
         });
-    },
+  },
 
   refreshList() {
     this.retrieveUsers();
   },
 
   reset () {
-    this.$refs.form.reset()
+    this.user = this.defaultuser;
+    this.editing = false;
+    this.submitted= false;
   },
 
   editItem (id) {
-    userRequest.get('/supervisors/'+id)
+    this.editing= true;
+    userRequest.get(`/supervisors/${id}`)
         .then((response) => {
           this.user = response.data.data;
           console.log("get details", response.data);

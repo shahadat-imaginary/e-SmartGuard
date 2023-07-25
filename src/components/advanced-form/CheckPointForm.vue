@@ -41,12 +41,12 @@
             <v-sheet class="mx-auto">
               <div v-if="!submitted">
                 <v-form ref="form" @submit.prevent="save" v-model="valid" lazy-validation>
-                  <v-text-field v-model="checkItem.name" label="Check Point Name *" :rules="[v => !!v || 'Check Point Name is required']" variant="outlined" required></v-text-field>
-                  <v-text-field v-model="checkItem.latitude" label="Lalitude *" :type="Number" :rules="[v => !!v || 'Lalitude is required']" variant="outlined" required></v-text-field>
-                  <v-text-field v-model="checkItem.longitude" label="Longitude *" :type="Number" :rules="[v => !!v || 'Longitude is required']" required variant="outlined"></v-text-field>
+                  <v-text-field v-model="checkItem.name" label="Check Point Name *" variant="outlined" required></v-text-field>
+                  <v-text-field v-model="checkItem.latitude" label="Lalitude *" :type="Number" variant="outlined" required></v-text-field>
+                  <v-text-field v-model="checkItem.longitude" label="Longitude *" :type="Number" required variant="outlined"></v-text-field>
 
                   <div class="d-flex">
-                    <v-btn color="success" class="mt-4 mr-2" @click="save">Save</v-btn>
+                    <v-btn color="success" class="mt-4 mr-2" type="submit">Save</v-btn>
                     <v-btn color="error" class="mt-4" @click="reset">Reset</v-btn>
                   </div>
                 </v-form>
@@ -99,22 +99,49 @@ data: () => ({
 methods: {
 
   async save() {
-    let checkPointCreate = {
+    if (this.checkItem.id) {
+        // If ID is present, update data using the API
+        this.update(this.checkItem.id);
+        this.submitted = true;
+        setTimeout(() => {this.reset();}, 2000);
+      } else {
+      let checkPointCreate = {
+        name: this.checkItem.checkPointName,
+        latitude: this.checkItem.latitude,
+        longitude: this.checkItem.longitude,
+      };
+
+      userRequest.post('/checkpoints', checkPointCreate)
+          .then((response) => {
+            this.checkItem.id = response.data.id;
+            console.log(response.data);
+            this.submitted = true;
+              setTimeout(() => {
+                this.reset();
+              }, 2000);
+              this.retrieveUsers();
+          })
+          .catch((e) => {
+            console.log(e);
+          });
+    }
+  },
+
+  update(id) {
+    let userUpdate = {
       name: this.checkItem.checkPointName,
       latitude: this.checkItem.latitude,
       longitude: this.checkItem.longitude,
     };
 
-    userRequest.post('/checkpoints', checkPointCreate)
-        .then((response) => {
-          this.checkItem.id = response.data.id;
-          console.log(response.data);
-          this.submitted = true;
-          this.refreshList();
-        })
-        .catch((e) => {
-          console.log(e);
-        });
+    userRequest.put(`/checkpoints/${id}`, userUpdate)
+      .then(response => {
+        this.checkItem = response.data.data;
+        console.log(response.data);
+      })
+      .catch(e => {
+        console.log(e);
+      });
   },
 
   retrieveUsers() {
@@ -133,11 +160,12 @@ methods: {
   },
 
   reset () {
-    this.$refs.form.reset()
+    this.checkItem = this.defaultcheckItem;
+    this.submitted= false;
   },
 
   editItem (id) {
-    userRequest.get('/checkpoints/'+id)
+    userRequest.get(`/checkpoints/${id}`)
         .then((response) => {
           this.checkItem = response.data.data;
           console.log("get details", response.data);

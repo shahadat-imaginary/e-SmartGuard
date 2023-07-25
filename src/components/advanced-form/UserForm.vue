@@ -50,7 +50,7 @@
                   <v-text-field label="Confirm Password" v-model="user.confirmPassword" type="password" required variant="outlined"></v-text-field>
                 </div>
                 <div v-if="editing">
-                  <v-select v-model="user.status" label="Status *" :items="status" variant="outlined" required></v-select>
+                  <v-select v-model="user.status" label="Status *" :items="this.status" variant="outlined" required></v-select>
                 </div>
 
                 <div class="d-flex">
@@ -187,7 +187,6 @@ methods: {
     this.user = this.defaultuser;
     this.editing = false;
     this.submitted= false;
-    this.$refs.form.reset();
   },
 
   editItem (id) {
