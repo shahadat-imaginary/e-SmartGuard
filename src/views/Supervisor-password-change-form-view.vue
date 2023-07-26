@@ -2,8 +2,7 @@
   <v-app id="inspire">
       <NavigationDrawer />
       <v-main>
-        <Breadcrumbs />
-        <GuardChangePassword />
+        <SupervisorChangePassword />
         <Footerbar />
       </v-main>
   </v-app>
@@ -11,7 +10,7 @@
 
 <script setup>
 import NavigationDrawer from '@/components/NavigationDrawer.vue';
-import GuardChangePassword from '@/components/advanced-form/GuardChangePassword.vue';
+import SupervisorChangePassword from '@/components/advanced-form/SupervisorChangePassword.vue';
 import Footerbar from '@/components/Footer.vue';
 </script>
 

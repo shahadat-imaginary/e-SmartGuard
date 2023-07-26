@@ -57,7 +57,7 @@
                   <v-text-field v-model="user.name" label="Name *" variant="outlined" required></v-text-field>
                   <v-text-field v-model="user.phoneNumber" label="Mobile No. *" :type="Number" variant="outlined" required></v-text-field>
                   <v-text-field v-model="user.email" label="Email" type="email" variant="outlined" required></v-text-field>
-                  <v-select v-model="user.supervisor_select" label="Supervisor" :items="this.items_supervisor" variant="outlined" required></v-select>
+                  <v-select v-model="selectedSupervisor" label="Supervisor" item-value="id" return-object="" item-title="name" :items="this.items_supervisor" variant="outlined" required></v-select>
                   <div v-if="!editing">
                     <v-text-field label="Password" v-model="user.password" type="password" required variant="outlined"></v-text-field>
                     <v-text-field label="Confirm Password" v-model="user.confirmPassword" type="password" required variant="outlined"></v-text-field>
@@ -104,6 +104,7 @@ data: () => ({
   items_supervisor: [],
   editing: false,
   status:['Active', 'Inactive'],
+  selectedSupervisor: [],
 
   user: {
     id: null,
@@ -144,7 +145,7 @@ methods: {
         name: this.user.name,
         phoneNumber: this.user.phoneNumber,
         email: this.user.email,
-        supervisorId: this.user.supervisor_select,
+        supervisorId: this.selectedSupervisor.id,
         password: this.user.password,
         confirmPassword: this.user.confirmPassword,
       };
@@ -158,6 +159,7 @@ methods: {
               this.reset();
             }, 2000);
             this.refreshList();
+            this.selectedSupervisor= null;
           })
           .catch((e) => {
             console.log(e);
@@ -170,7 +172,7 @@ methods: {
         name: this.user.name,
         phoneNumber: this.user.phoneNumber,
         email: this.user.email,
-        supervisorId: this.user.supervisor_select,
+        supervisorId: this.selectedSupervisor.id,
         status: this.user.status,
       };
       this.editing = false;
@@ -178,7 +180,11 @@ methods: {
         .then(response => {
           this.user = response.data.data;
           console.log(response.data);
-          this.reset();
+            setTimeout(() => {
+              this.reset();
+            this.refreshList();
+            }, 2000);
+            this.selectedSupervisor= null;
         })
         .catch(e => {
           console.log(e);
@@ -199,7 +205,7 @@ methods: {
   retrieveSupervisor() {
       userRequest.get('/supervisors')
         .then((response) => {
-          this.items_supervisor = response.data.data.data.map(o=>o.name);
+          this.items_supervisor = response.data.data.data;
           console.log("get Details", response.data.data.data);
         })
         .catch((e) => {
@@ -213,6 +219,7 @@ methods: {
         .then((response) => {
           this.user = response.data.data;
           console.log("get details", response.data);
+          this.selectedSupervisor = response.data.data.supervisor;
         })
         .catch((e) => {
           console.log(e);

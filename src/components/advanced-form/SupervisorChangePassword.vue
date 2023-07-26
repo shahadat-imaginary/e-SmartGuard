@@ -4,7 +4,7 @@
       <v-col md="7" sm="12">
           <v-card>
               <v-toolbar>
-                <v-toolbar-title>User List</v-toolbar-title>
+                <v-toolbar-title>Supervisor List</v-toolbar-title>
               </v-toolbar>
 
               <v-card-title>
@@ -28,7 +28,6 @@
                   :search="search">
                     <template v-slot:[`item.actions`]="{ item }">
                       <v-icon size="small" class="me-2" @click="editItem(item.columns.id)">mdi-square-edit-outline</v-icon>
-                      <v-icon size="small" @click="deleteItem(item.columns.id)">mdi-delete</v-icon>
                     </template>
                 </v-data-table>
               </v-card-item>
@@ -36,22 +35,16 @@
       </v-col>
       <v-col md="5" sm="12">
         <v-card elevation="4">
-          <v-card-title>User Information</v-card-title>
+          <v-card-title>Change Password</v-card-title>
           <v-card-text class="mt-3">
             <v-sheet class="mx-auto">
               <div v-if="!submitted">
               <v-form ref="form" @submit.prevent="save" lazy-validation>
-                <v-text-field v-model="user.name" label="User Name *" variant="outlined" required></v-text-field>
-                <v-text-field v-model="user.phoneNumber" label="Mobile No. *" :type="Number" variant="outlined" required></v-text-field>
-                <v-text-field v-model="user.position" label="Position *" variant="outlined" required></v-text-field>
-                <v-text-field v-model="user.email" label="Email" type="email" variant="outlined" required></v-text-field>
-                <div v-if="!editing">
-                  <v-text-field label="Password" v-model="user.password" type="password" required variant="outlined"></v-text-field>
-                  <v-text-field label="Confirm Password" v-model="user.confirmPassword" type="password" required variant="outlined"></v-text-field>
-                </div>
-                <div v-if="editing">
-                  <v-select v-model="user.status" label="Status *" :items="this.status" variant="outlined" required></v-select>
-                </div>
+                <v-text-field v-model="user.name" label="Name *" variant="outlined" required disabled></v-text-field>
+                <v-text-field v-model="user.phoneNumber" label="Mobile No. *" :type="Number" variant="outlined" required disabled></v-text-field>
+                <v-text-field v-model="user.email" label="Email" type="email" variant="outlined" required disabled></v-text-field>
+                <v-text-field label="Password" v-model="user.password" type="password" :rules="passwordRules" required variant="outlined"></v-text-field>
+                <v-text-field label="Confirm Password" v-model="user.confirmPassword" type="password" :rules="confirmPasswordRules.concat(passwordConfirmationRule)" required variant="outlined"></v-text-field>
 
                 <div class="d-flex">
                   <v-btn color="success" class="mt-4 mr-2" type="submit">Save</v-btn>
@@ -79,23 +72,26 @@ import userRequest from '@/axios/request';
 export default {
 data: () => ({
   search: '',
+  passwordRules: [v => !!v || "Password is required", (v) => v.length >= 6 || 'Password must be at least 6 characters',],
+  confirmPasswordRules: [v => !!v || "Password is required", (v) => v.length >= 6 || 'Password must be at least 6 characters',],
+
   headers: [
       { key: 'id', title: '#', align: ' d-none' },
       { key: 'name', title: 'Name' },
       { key: 'phoneNumber', title: 'Mobile No.', sortable: false },
-      { key: 'position', title: 'Position' },
       { key: 'email', title: 'Email' },
+      { key: 'status', title: 'Status' },
       { key: 'actions', title: 'Actions', sortable: false },
   ],
-  userItems: [],
 
+  userItems: [],
   editing: false,
   status:['Active', 'Inactive'],
+
   user: {
     id: null,
     name: '',
     phoneNumber: null,
-    position: '',
     email: '',
     password: '',
     confirmPassword: '',
@@ -105,7 +101,6 @@ data: () => ({
     id: null,
     name: '',
     phoneNumber: null,
-    position: '',
     email: '',
     password: '',
     confirmPassword: '',
@@ -114,6 +109,12 @@ data: () => ({
   submitted: false,
 }),
 
+computed: {
+  passwordConfirmationRule() {
+      return () =>
+        this.password === this.confirmPassword || "Passwords do not match";
+  },
+},
 
 methods: {
 
@@ -122,59 +123,35 @@ methods: {
         // If ID is present, update data using the API
         this.update(this.user.id);
         this.submitted = true;
-        setTimeout(() => {this.reset();}, 2000);
+        setTimeout(() => {
+          this.reset();
+          this.refreshList();
+        }, 2000);
+
       } else {
-      let userCreate = {
-        name: this.user.name,
-        phoneNumber: this.user.phoneNumber,
-        position: this.user.position,
-        email: this.user.email,
-        password: this.user.password,
-        confirmPassword: this.user.confirmPassword,
-      };
-
-      userRequest.post('/users', userCreate)
-          .then((response) => {
-            this.user.id = response.data.id;
-            console.log(response.data);
-            this.submitted = true;
-            setTimeout(() => {
-              this.reset();
-              this.retrieveUsers();
-            }, 2000);
-
-          })
-          .catch((e) => {
-            console.log(e);
-          });
+        this.retrieveUsers();
       }
   },
 
   update(id) {
-      let userUpdate = {
-        name: this.user.name,
-        phoneNumber: this.user.phoneNumber,
-        position: this.user.position,
-        email: this.user.email,
-        status: this.user.status,
-      };
-      this.editing = false;
-      userRequest.put(`/users/${id}`, userUpdate)
-        .then(response => {
-          this.user = response.data.data;
-          console.log(response.data);
-            setTimeout(() => {
-              this.reset();
-              this.retrieveUsers();
-            }, 2000);
-        })
-        .catch(e => {
-          console.log(e);
-        });
-    },
+    let userUpdate = {
+      password: this.user.password,
+      confirmPassword: this.user.confirmPassword,
+    };
+    this.editing = false;
+    userRequest.put(`/supervisors/${id}`, userUpdate)
+      .then(response => {
+        this.user = response.data.data;
+        console.log(response.data);
+        this.retrieveUsers();
+      })
+      .catch(e => {
+        console.log(e);
+      });
+  },
 
   retrieveUsers() {
-      userRequest.get('/users')
+      userRequest.get('/supervisors')
         .then((response) => {
           this.userItems = response.data.data.data;
           console.log("get", response.data);
@@ -182,7 +159,7 @@ methods: {
         .catch((e) => {
           console.log(e);
         });
-    },
+  },
 
   refreshList() {
     this.retrieveUsers();
@@ -192,11 +169,12 @@ methods: {
     this.user = this.defaultuser;
     this.editing = false;
     this.submitted= false;
+    this.$refs.form.reset();
   },
 
   editItem (id) {
     this.editing= true;
-    userRequest.get(`/users/${id}`)
+    userRequest.get(`/supervisors/${id}`)
         .then((response) => {
           this.user = response.data.data;
           console.log("get details", response.data);

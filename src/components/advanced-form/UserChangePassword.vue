@@ -35,7 +35,7 @@
       </v-col>
       <v-col md="5" sm="12">
         <v-card elevation="4">
-          <v-card-title>User Information</v-card-title>
+          <v-card-title>Change Password</v-card-title>
           <v-card-text class="mt-3">
             <v-sheet class="mx-auto">
               <div v-if="!submitted">

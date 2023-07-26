@@ -27,7 +27,7 @@
                 <v-list-item v-bind="props" prepend-icon="mdi mdi-shield-account" title="Supervisors Management"></v-list-item>
               </template>
               <v-list-item prepend-icon="mdi mdi-circle-outline" value="Supervisor List" title="Supervisor List" to="/supervisors"></v-list-item>
-              <!-- <v-list-item prepend-icon="mdi mdi-circle-outline" value="Guard Change Password" title="Change Password" to="/guard-password-change"></v-list-item> -->
+              <v-list-item prepend-icon="mdi mdi-circle-outline" value="Supervisor Change Password" title="Change Password" to="/supervisors-password-change"></v-list-item>
             </v-list-group>
             <v-list-group value="Guards Management">
               <template v-slot:activator="{ props }">

@@ -45,6 +45,12 @@ const routes = [
         component: () => import('@/views/Supervisor-form-view.vue'),
       },
       {
+        path: '/supervisors-password-change',
+        name: 'Supervisor Password Change Form',
+        // component: Supervisor Password Change FormVue,
+        component: () => import('@/views/Supervisor-password-change-form-view.vue'),
+      },
+      {
         path: '/guards',
         name: 'Guard Form',
         // component: Guard FormVue,
