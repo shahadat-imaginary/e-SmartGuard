@@ -125,7 +125,7 @@ computed: {
 methods: {
 
   async save() {
-    if (this.$refs.form.validate()) {
+    this.$refs.form.validate();
         if (this.user.id) {
           // If ID is present, update data using the API
           this.update(this.user.id);
@@ -138,26 +138,16 @@ methods: {
         } else {
           this.retrieveUsers();
         }
-        // If the form is valid, perform change password logic here
-        console.log('Form is valid. Changing password...');
-        // Reset the form after successful password change
-        this.resetForm();
-      } else {
-        // If the form is invalid, display validation errors
-        console.log('Form is invalid. Please correct the errors.');
-      }
-
   },
-
-  resetForm() {
-      this.user.password = '';
-      this.user.confirmPassword = '';
-    },
 
   update(id) {
     let userUpdate = {
+      name: this.user.name,
+      phoneNumber: this.user.phoneNumber,
+      position: this.user.position,
+      email: this.user.email,
+      status: this.user.status,
       password: this.user.password,
-      confirmPassword: this.user.confirmPassword,
     };
     this.editing = false;
     userRequest.put(`/supervisors/${id}`, userUpdate)
