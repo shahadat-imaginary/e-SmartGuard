@@ -44,7 +44,7 @@
                 <v-text-field v-model="user.phoneNumber" label="Mobile No. *" :type="Number" variant="outlined" required disabled></v-text-field>
                 <v-text-field v-model="user.email" label="Email" type="email" variant="outlined" required disabled></v-text-field>
                 <v-text-field label="Password" v-model="user.password" type="password" :rules="passwordRules" required variant="outlined"></v-text-field>
-                <v-text-field label="Confirm Password" v-model="user.confirmPassword" type="password" :rules="confirmPasswordRules.concat(passwordConfirmationRule)" required variant="outlined"></v-text-field>
+                <v-text-field label="Confirm Password" v-model="user.confirmPassword" type="password" :rules="confirmPasswordRules" required variant="outlined"></v-text-field>
 
                 <div class="d-flex">
                   <v-btn color="success" class="mt-4 mr-2" type="submit">Save</v-btn>
@@ -72,8 +72,6 @@ import userRequest from '@/axios/request';
 export default {
 data: () => ({
   search: '',
-  passwordRules: [v => !!v || "Password is required", (v) => v.length >= 6 || 'Password must be at least 6 characters',],
-  confirmPasswordRules: [v => !!v || "Password is required", (v) => v.length >= 6 || 'Password must be at least 6 characters',],
 
   headers: [
       { key: 'id', title: '#', align: ' d-none' },
@@ -110,28 +108,51 @@ data: () => ({
 }),
 
 computed: {
-  passwordConfirmationRule() {
-      return () =>
-        this.password === this.confirmPassword || "Passwords do not match";
+    passwordRules() {
+      return [
+        (v) => !!v || 'Password is required',
+        (v) => v.length >= 6 || 'Password must be at least 6 characters',
+      ];
+    },
+    confirmPasswordRules() {
+      return [
+        (v) => !!v || 'Confirm Password is required',
+        (v) => v === this.user.password || 'Passwords do not match',
+      ];
+    },
   },
-},
 
 methods: {
 
   async save() {
-    if (this.user.id) {
-        // If ID is present, update data using the API
-        this.update(this.user.id);
-        this.submitted = true;
-        setTimeout(() => {
-          this.reset();
-          this.refreshList();
-        }, 2000);
+    if (this.$refs.form.validate()) {
+        if (this.user.id) {
+          // If ID is present, update data using the API
+          this.update(this.user.id);
+          this.submitted = true;
+          setTimeout(() => {
+            this.reset();
+            this.refreshList();
+          }, 2000);
 
+        } else {
+          this.retrieveUsers();
+        }
+        // If the form is valid, perform change password logic here
+        console.log('Form is valid. Changing password...');
+        // Reset the form after successful password change
+        this.resetForm();
       } else {
-        this.retrieveUsers();
+        // If the form is invalid, display validation errors
+        console.log('Form is invalid. Please correct the errors.');
       }
+
   },
+
+  resetForm() {
+      this.user.password = '';
+      this.user.confirmPassword = '';
+    },
 
   update(id) {
     let userUpdate = {

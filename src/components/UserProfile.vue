@@ -8,7 +8,6 @@
             <v-sheet class="mx-auto">
               <v-form ref="form" v-model="valid" lazy-validation>
                 <v-text-field v-model="userName" label="User Name *" variant="outlined"></v-text-field>
-                <v-text-field v-model="userId" label="User ID *" type="number" variant="outlined" required></v-text-field>
                 <v-text-field v-model="userType" label="User Type *" variant="outlined" required></v-text-field>
                 <v-text-field v-model="mobileNo" label="Mobile No. *" :type="Number" variant="outlined" required></v-text-field>
                 <v-text-field v-model="email" label="Email" type="email" variant="outlined" required></v-text-field>
@@ -58,26 +57,22 @@ data: () => ({
   image: null,
 
   userItems: [],
-  editedIndex: -1,
-  editedItem: {
+
+  user: {
     id: null,
-    userName: '',
-    userId: null,
-    userType: '',
-    mobileNo: null,
+    name: '',
+    phoneNumber: null,
     email: '',
-    password: "",
-    confirmPassword: "",
+    password: '',
+    confirmPassword: '',
   },
-  defaultItem: {
+  defaultuser: {
     id: null,
-    userName: '',
-    userId: null,
-    userType: '',
-    mobileNo: null,
+    name: '',
+    phoneNumber: null,
     email: '',
-    password: "",
-    confirmPassword: "",
+    password: '',
+    confirmPassword: '',
   },
 }),
 

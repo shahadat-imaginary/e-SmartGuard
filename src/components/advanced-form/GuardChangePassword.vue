@@ -28,7 +28,6 @@
                   :search="search">
                     <template v-slot:[`item.actions`]="{ item }">
                       <v-icon size="small" class="me-2" @click="editItem(item.columns.id)">mdi-square-edit-outline</v-icon>
-                      <v-icon size="small" @click="deleteItem(item.columns.id)">mdi-delete</v-icon>
                     </template>
                 </v-data-table>
               </v-card-item>
@@ -123,7 +122,6 @@ methods: {
         this.update(this.user.id);
         this.submitted = true;
         setTimeout(() => {this.reset();}, 2000);
-        this.refreshList();
       } else {
          this.refreshList();
       }
@@ -139,11 +137,8 @@ methods: {
         .then(response => {
           this.user = response.data.data;
           console.log(response.data);
-            setTimeout(() => {
-              this.reset();
-            this.refreshList();
-            }, 2000);
-            this.selectedSupervisor= null;
+          this.selectedSupervisor= null;
+          this.refreshList();
         })
         .catch(e => {
           console.log(e);
@@ -154,7 +149,7 @@ methods: {
       userRequest.get('/guards')
         .then((response) => {
           this.guardItems = response.data.data.data;
-          console.log("get", response.data.data.data);
+          console.log("get", response.data);
         })
         .catch((e) => {
           console.log(e);
@@ -165,7 +160,7 @@ methods: {
       userRequest.get('/supervisors')
         .then((response) => {
           this.items_supervisor = response.data.data.data;
-          console.log("get Details", response.data.data.data);
+          console.log("get Details", response.data);
         })
         .catch((e) => {
           console.log(e);

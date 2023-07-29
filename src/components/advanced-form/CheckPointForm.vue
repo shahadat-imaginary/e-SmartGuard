@@ -106,7 +106,7 @@ methods: {
         setTimeout(() => {this.reset();}, 2000);
       } else {
       let checkPointCreate = {
-        name: this.checkItem.checkPointName,
+        name: this.checkItem.name,
         latitude: this.checkItem.latitude,
         longitude: this.checkItem.longitude,
       };
@@ -118,8 +118,8 @@ methods: {
             this.submitted = true;
               setTimeout(() => {
                 this.reset();
+                this.retrieveCheckPoint();
               }, 2000);
-              this.retrieveUsers();
           })
           .catch((e) => {
             console.log(e);
@@ -128,23 +128,24 @@ methods: {
   },
 
   update(id) {
-    let userUpdate = {
-      name: this.checkItem.checkPointName,
+    let checkPointUpdate = {
+      name: this.checkItem.name,
       latitude: this.checkItem.latitude,
       longitude: this.checkItem.longitude,
     };
 
-    userRequest.put(`/checkpoints/${id}`, userUpdate)
+    userRequest.put(`/checkpoints/${id}`, checkPointUpdate)
       .then(response => {
         this.checkItem = response.data.data;
         console.log(response.data);
+        this.refreshList();
       })
       .catch(e => {
         console.log(e);
       });
   },
 
-  retrieveUsers() {
+  retrieveCheckPoint() {
       userRequest.get('/checkpoints')
         .then((response) => {
           this.checkPointItems = response.data.data.data;
@@ -156,7 +157,7 @@ methods: {
     },
 
   refreshList() {
-    this.retrieveUsers();
+    this.retrieveCheckPoint();
   },
 
   reset () {
@@ -178,7 +179,7 @@ methods: {
 },
 
 mounted() {
-    this.retrieveUsers();
+    this.retrieveCheckPoint();
 },
 
 }

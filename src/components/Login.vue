@@ -12,17 +12,13 @@
       <v-contain style="height: 163px;">
         <v-img cover src="../assets/logo.webp"></v-img>
     </v-contain>
-      <v-form @submit.prevent="submitForm"
-        ref="form"
-        v-model="isValid"
-        class="pt-4"
-      >
-        <v-text-field append-inner-icon="mdi mdi-account" v-model="email" label="MyKad No." variant="outlined"></v-text-field>
-        <v-text-field append-inner-icon="mdi mdi-lock" v-model="password" label="password" variant="outlined"></v-text-field>
+      <v-form @submit.prevent="submitForm" v-model="isValid" class="pt-4" ref="form" lazy-validation>
+        <v-text-field append-inner-icon="mdi mdi-account" v-model="email" label="MyKad No." :rules="emailRules" variant="outlined" required></v-text-field>
+        <v-text-field append-inner-icon="mdi mdi-lock" v-model="password" type="password" label="password" variant="outlined" required></v-text-field>
         <v-checkbox class="d-flex justify-center"
           v-model="agreement"
           :rules="[v => !!v || 'You must agree to continue!']"
-          color="deep-purple"
+          color="deep-purple" required
         >
           <template v-slot:label>
             Admin Dashboard
@@ -57,6 +53,10 @@ export default {
             rules: {
                 required: v => !!v || 'This field is required',
             },
+            emailRules: [
+              v => !!v || 'E-mail is required',
+              v => /^(([^<>()[\]\\.,;:\s@']+(\.[^<>()\\[\]\\.,;:\s@']+)*)|('.+'))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(v) || 'E-mail must be valid',
+            ],
         };
     },
     methods: {

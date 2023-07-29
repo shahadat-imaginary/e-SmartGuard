@@ -27,18 +27,6 @@
                   :items="guardItems"
                   :search="search">
 
-                  <!-- <template v-slot:[`item.guardInformation`]="{ item }">
-                    {{(item.columns.guardInformation.guardId)}},
-                    {{(item.columns.guardInformation.fullName)}},
-                    {{(item.columns.guardInformation.mobileNo)}},
-                    {{(item.columns.guardInformation.rank_select)}}
-                  </template>
-
-                  <template v-slot:[`item.shiftTime`]="{ item }">
-                    {{(item.columns.shiftTime.startTime)}} -
-                    {{(item.columns.shiftTime.endTime)}}
-                  </template> -->
-
                     <template v-slot:[`item.actions`]="{ item }">
                       <v-icon size="small" class="me-2" @click="editItem(item.columns.id)">mdi-square-edit-outline</v-icon>
                       <v-icon size="small" @click="deleteItem(item.columns.id)">mdi-delete</v-icon>
@@ -53,7 +41,7 @@
           <v-card-text class="mt-3">
             <v-sheet class="mx-auto">
               <div v-if="!submitted">
-                <v-form ref="form"  @submit.prevent="save" v-model="valid" lazy-validation>
+                <v-form ref="form" @submit.prevent="save" v-model="valid" lazy-validation>
                   <v-text-field v-model="user.name" label="Name *" variant="outlined" required></v-text-field>
                   <v-text-field v-model="user.phoneNumber" label="Mobile No. *" :type="Number" variant="outlined" required></v-text-field>
                   <v-text-field v-model="user.email" label="Email" type="email" variant="outlined" required></v-text-field>
@@ -139,7 +127,6 @@ methods: {
         this.update(this.user.id);
         this.submitted = true;
         setTimeout(() => {this.reset();}, 2000);
-        this.refreshList();
       } else {
       let userCreate = {
         name: this.user.name,
@@ -157,8 +144,8 @@ methods: {
             this.submitted = true;
             setTimeout(() => {
               this.reset();
+              this.retrieveUsers();
             }, 2000);
-            this.refreshList();
             this.selectedSupervisor= null;
           })
           .catch((e) => {
@@ -180,11 +167,9 @@ methods: {
         .then(response => {
           this.user = response.data.data;
           console.log(response.data);
-            setTimeout(() => {
-              this.reset();
-            this.refreshList();
-            }, 2000);
-            this.selectedSupervisor= null;
+          // this.selectedSupervisor= this.selectedSupervisor.id;
+          this.selectedSupervisor= null;
+          this.refreshList();
         })
         .catch(e => {
           console.log(e);
@@ -195,7 +180,7 @@ methods: {
       userRequest.get('/guards')
         .then((response) => {
           this.guardItems = response.data.data.data;
-          console.log("get", response.data.data.data);
+          console.log("get", response.data);
         })
         .catch((e) => {
           console.log(e);
@@ -206,7 +191,7 @@ methods: {
       userRequest.get('/supervisors')
         .then((response) => {
           this.items_supervisor = response.data.data.data;
-          console.log("get Details", response.data.data.data);
+          console.log("get Details", response.data);
         })
         .catch((e) => {
           console.log(e);

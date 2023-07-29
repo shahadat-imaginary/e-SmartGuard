@@ -7,7 +7,7 @@
           <v-list-item
             prepend-avatar="https://randomuser.me/api/portraits/men/85.jpg"
             title="John Leider"
-            nav
+            nav to="/user-profile"
           >
           </v-list-item>
 
@@ -42,7 +42,7 @@
               </template>
               <v-list-item prepend-icon="mdi mdi-circle-outline" value="Checkpoint List" title="Checkpoint List" to="/checkpoints"></v-list-item>
               <v-list-item prepend-icon="mdi mdi-circle-outline" value="Route List" title="Route List" to="/routes"></v-list-item>
-              <v-list-item prepend-icon="mdi mdi-circle-outline" value="Patrol List" title="Patrol List" to="/patrol"></v-list-item>
+              <v-list-item prepend-icon="mdi mdi-circle-outline" value="Patrol List" title="Patrol List" to="/patrols"></v-list-item>
             </v-list-group>
             <v-list-group value="Reports">
               <template v-slot:activator="{ props }">
@@ -100,7 +100,7 @@
                 {{ user.name }}
               </p>
               <v-divider class="my-3"></v-divider>
-              <v-btn class="me-2 text-none" color="indigo-accent-4" variant="flat">Change Password</v-btn>
+              <v-btn class="me-2 text-none" color="indigo-accent-4" variant="flat" to="/user-profile">Change Password</v-btn>
               <v-btn to="/login" class="me-2 text-none" color="red-darken-4" variant="flat">Log Out</v-btn>
             </div>
           </v-card-text>

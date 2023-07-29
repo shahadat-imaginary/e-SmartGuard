@@ -163,10 +163,7 @@ methods: {
         .then(response => {
           this.user = response.data.data;
           console.log(response.data);
-            setTimeout(() => {
-              this.reset();
-              this.retrieveUsers();
-            }, 2000);
+          this.refreshList();
         })
         .catch(e => {
           console.log(e);

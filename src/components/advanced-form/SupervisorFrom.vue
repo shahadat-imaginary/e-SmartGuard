@@ -78,7 +78,6 @@ import userRequest from '@/axios/request';
 export default {
 data: () => ({
   search: '',
-
   headers: [
       { key: 'id', title: '#', align: ' d-none' },
       { key: 'name', title: 'Name' },
@@ -113,6 +112,20 @@ data: () => ({
   submitted: false,
 }),
 
+computed: {
+    passwordRules() {
+      return [
+        (v) => !!v || 'Password is required',
+        (v) => v.length >= 6 || 'Password must be at least 6 characters',
+      ];
+    },
+    confirmPasswordRules() {
+      return [
+        (v) => !!v || 'Confirm Password is required',
+        (v) => v === this.user.password || 'Passwords do not match',
+      ];
+    },
+  },
 
 methods: {
 
@@ -121,7 +134,6 @@ methods: {
         // If ID is present, update data using the API
         this.update(this.user.id);
         this.submitted = true;
-        this.refreshList();
         setTimeout(() => {this.reset();}, 2000);
       } else {
       let supervisorCreate = {
@@ -137,8 +149,10 @@ methods: {
             this.user.id = response.data.id;
             console.log(response.data);
             this.submitted = true;
-            this.refreshList();
-            setTimeout(() => {this.reset();}, 2000);
+            setTimeout(() => {
+              this.reset();
+              this.retrieveUsers();
+            }, 2000);
           })
           .catch((e) => {
             console.log(e);
@@ -159,6 +173,7 @@ methods: {
       .then(response => {
         this.user = response.data.data;
         console.log(response.data);
+        this.refreshList();
       })
       .catch(e => {
         console.log(e);

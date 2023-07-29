@@ -21,6 +21,12 @@ const routes = [
         component: () => import('@/views/Login.vue'),
       },
       {
+        path: '/user-profile',
+        name: 'User Profile Form',
+        // component: User FormVue,
+        component: () => import('@/views/Profile-view.vue'),
+      },
+      {
         path: '/users',
         name: 'User Form',
         // component: User FormVue,
@@ -75,7 +81,7 @@ const routes = [
         component: () => import('@/views/Route-view.vue'),
       },
       {
-        path: '/patrol',
+        path: '/patrols',
         name: 'Patrol',
         // component: PatrolVue,
         component: () => import('@/views/Patrol-view.vue'),
