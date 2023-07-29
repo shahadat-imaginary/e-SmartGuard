@@ -27,6 +27,10 @@
                   :items="guardItems"
                   :search="search">
 
+                    <template v-slot:[`item.supervisor`]="{ item }">
+                      {{ item.columns.supervisor}}
+                    </template>
+
                     <template v-slot:[`item.actions`]="{ item }">
                       <v-icon size="small" class="me-2" @click="editItem(item.columns.id)">mdi-square-edit-outline</v-icon>
                       <v-icon size="small" @click="deleteItem(item.columns.id)">mdi-delete</v-icon>
@@ -217,9 +221,10 @@ methods: {
   },
 
   reset () {
-    this.user = this.defaultuser;
+    // this.user = this.defaultuser;
     this.editing = false;
     this.submitted= false;
+    this.$refs.form.reset();
   },
 
 },

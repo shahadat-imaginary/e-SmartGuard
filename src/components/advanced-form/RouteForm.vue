@@ -26,6 +26,11 @@
                   :headers="headers"
                   :items="routeItems"
                   :search="search">
+
+                    <template v-slot:[`item.routeCheckpoints`]="{ item }">
+                      {{ item.columns.routeCheckpoints}}
+                    </template>
+
                     <template v-slot:[`item.actions`]="{ item }">
                       <v-icon size="small" class="me-2" @click="editItem(item.columns.id)">mdi-square-edit-outline</v-icon>
                       <v-icon size="small" @click="deleteItem(item.columns.id)">mdi-delete</v-icon>

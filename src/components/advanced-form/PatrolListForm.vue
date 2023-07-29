@@ -28,8 +28,15 @@
                   :search="search" ref="dataTable">
 
                   <template v-slot:[`item.date`]="{ item }">
-                    {{ item.columns.id }}
-                    <!-- {{(item.columns.date.start)}} - {{(item.columns.date.end)}} -->
+                    <!-- {{ item.columns.id }} -->
+                    {{(item.columns.start)}} - {{(item.columns.end)}}
+                  </template>
+
+                  <template v-slot:[`item.guard`]="{ item }">
+                    {{(item.columns.guard.name)}}
+                  </template>
+                  <template v-slot:[`item.route`]="{ item }">
+                    {{(item.columns.route.name)}}
                   </template>
 
                     <template v-slot:[`item.actions`]="{ item }">
@@ -88,8 +95,9 @@
         search: '',
         headers: [
             { key: 'id', title: '#', align: ' d-none' },
-            { key: 'date', title: 'Date' },
-            { key: 'guardInfo', title: 'Guard'},
+            { key: 'start', title: 'StartDate' },
+            { key: 'end', title: 'EndDate' },
+            { key: 'guard', title: 'Guard'},
             { key: 'route', title: 'Route' },
             { key: 'actions', title: 'Actions', sortable: false },
         ],
@@ -106,7 +114,7 @@
         patrol: {
           id: null,
           date: '',
-          guardInfo: '',
+          guardinfo: '',
           route: '',
           guard_select: null,
           route_select: null,
@@ -115,7 +123,7 @@
         defaultpatrol: {
           id: null,
           date: null,
-          guardInfo: '',
+          guardinfo: '',
           route: '',
           guard_select: null,
           route_select: null,
@@ -135,8 +143,8 @@
             let patrolCreate = {
               guardId: this.selectedGuard.id,
               routeId: this.selectedRoute.id,
-              start: this.startdate && this.startTime,
-              end: this.enddate && this.endTime,
+              start: this.startdate + '' + this.startTime,
+              end: this.enddate + '' + this.endTime,
             };
 
             userRequest.post('/patrols', patrolCreate)
@@ -161,8 +169,8 @@
             let patrolUpdate = {
               guardId: this.selectedGuard.id,
               routeId: this.selectedRoute.id,
-              start: this.startdate && this.startTime,
-              end: this.enddate && this.endTime,
+              start: this.startdate + '' + this.startTime,
+              end: this.enddate + '' + this.endTime,
             };
 
             userRequest.put(`/patrols/${id}`, patrolUpdate)
@@ -172,8 +180,8 @@
                 // this.selectedSupervisor= this.selectedSupervisor.id;
                 this.startdate=moment(response.data.start).format("YYYY-MM-DD")
                 this.startTime=moment(response.data.start).format("HH:MM")
-                this.enddate=moment(response.data.start).format("YYYY-MM-DD")
-                this.endTime=moment(response.data.start).format("HH:MM")
+                this.enddate=moment(response.data.end).format("YYYY-MM-DD")
+                this.endTime=moment(response.data.end).format("HH:MM")
                 this.selectedGuard= null;
                 this.selectedRoute= null;
                 this.refreshList();
@@ -225,8 +233,8 @@
                 // console.log("get details time", );
                 this.startdate=moment(response.data.start).format("YYYY-MM-DD")
                 this.startTime=moment(response.data.start).format("HH:MM")
-                this.enddate=moment(response.data.start).format("YYYY-MM-DD")
-                this.endTime=moment(response.data.start).format("HH:MM")
+                this.enddate=moment(response.data.end).format("YYYY-MM-DD")
+                this.endTime=moment(response.data.end).format("HH:MM")
                 this.selectedGuard = response.data.data.guard;
                 this.selectedRoute = response.data.data.route;
               })
