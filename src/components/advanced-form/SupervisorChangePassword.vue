@@ -125,7 +125,8 @@ computed: {
 methods: {
 
   async save() {
-    this.$refs.form.validate();
+    const { valid } = await this.$refs.form.validate();
+    if (valid) {
         if (this.user.id) {
           // If ID is present, update data using the API
           this.update(this.user.id);
@@ -138,9 +139,11 @@ methods: {
         } else {
           this.retrieveUsers();
         }
+      }
   },
 
   update(id) {
+    this.$refs.form.validate();
     let userUpdate = {
       name: this.user.name,
       phoneNumber: this.user.phoneNumber,

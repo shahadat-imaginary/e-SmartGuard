@@ -28,7 +28,7 @@
                   :search="search">
 
                     <template v-slot:[`item.routeCheckpoints`]="{ item }">
-                      {{ item.columns.routeCheckpoints}}
+                      {{ checkpointData(item.columns.routeCheckpoints)}}
                     </template>
 
                     <template v-slot:[`item.actions`]="{ item }">
@@ -46,8 +46,8 @@
             <v-sheet class="mx-auto">
               <div v-if="!submitted">
                 <v-form ref="form" @submit.prevent="save" v-model="valid" lazy-validation>
-                  <v-text-field v-model="route.name" label="Route Name *" variant="outlined" required></v-text-field>
-                  <v-select v-model="selectedCheckpoint" label="Check Point *" item-value="id" return-object="" item-title="name" :items="this.item_checkpoint" multiple variant="outlined" required></v-select>
+                  <v-text-field v-model="route.name" label="Route Name *" variant="outlined" :rules="[v => !!v || 'Route Name is required']" required></v-text-field>
+                  <v-select v-model="selectedCheckpoint" label="Check Point *" item-value="id" return-object="" item-title="name" :items="this.item_checkpoint" multiple variant="outlined" :rules="[v => !!v || 'Item is required']" required></v-select>
 
                   <div class="d-flex">
                     <v-btn color="success" class="mt-4 mr-2" type="submit">Save</v-btn>
@@ -100,31 +100,34 @@ data: () => ({
 
 methods: {
   async save() {
-    if (this.route.id) {
-        // If ID is present, update data using the API
-        this.update(this.route.id);
-        this.submitted = true;
-        setTimeout(() => {this.reset();}, 2000);
-      } else {
-      let routeCreate = {
-        name: this.route.name,
-        routeCheckpoints: this.selectedCheckpoint.id,
-      };
-
-      userRequest.post('/routes', routeCreate)
-          .then((response) => {
-            this.route.id = response.data.id;
-            console.log(response.data);
+    const { valid } = await this.$refs.form.validate();
+    if (valid) {
+        if (this.route.id) {
+            // If ID is present, update data using the API
+            this.update(this.route.id);
             this.submitted = true;
-            setTimeout(() => {
-              this.reset();
-              this.retrieveRoutes();
-            }, 2000);
-            this.selectedCheckpoint= null;
-          })
-          .catch((e) => {
-            console.log(e);
-          });
+            setTimeout(() => {this.reset();}, 2000);
+          } else {
+          let routeCreate = {
+            name: this.route.name,
+            routeCheckpoints: this.selectedCheckpoint.id,
+          };
+
+          userRequest.post('/routes', routeCreate)
+              .then((response) => {
+                this.route.id = response.data.id;
+                console.log(response.data);
+                this.submitted = true;
+                setTimeout(() => {
+                  this.reset();
+                  this.retrieveRoutes();
+                }, 2000);
+                this.selectedCheckpoint= null;
+              })
+              .catch((e) => {
+                console.log(e);
+              });
+          }
       }
   },
 
@@ -186,6 +189,16 @@ methods: {
         .catch((e) => {
           console.log(e);
         });
+  },
+
+  checkpointData(arr)
+  {
+    let checkedArr= []
+          const updatedData= arr.map((o)=> {
+            let obj= {...o}
+            checkedArr.push(obj.checkpoint.name)
+          })
+          return checkedArr.join();
   },
 
   refreshList() {

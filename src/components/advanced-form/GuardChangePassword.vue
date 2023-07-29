@@ -39,14 +39,14 @@
           <v-card-text class="mt-3">
             <v-sheet class="mx-auto">
               <div v-if="!submitted">
-                <v-form ref="form"  @submit.prevent="save" v-model="valid" lazy-validation>
+                <v-form ref="form" @submit.prevent="save" lazy-validation>
                   <v-text-field v-model="user.name" label="Name *" variant="outlined" required disabled></v-text-field>
                   <v-text-field v-model="user.phoneNumber" label="Mobile No. *" :type="Number" variant="outlined" required disabled></v-text-field>
                   <v-text-field v-model="user.email" label="Email" type="email" variant="outlined" required disabled></v-text-field>
                   <v-select v-model="selectedSupervisor" label="Supervisor" item-value="id" return-object="" item-title="name" :items="this.items_supervisor" variant="outlined" required disabled></v-select>
 
-                  <v-text-field label="Password" v-model="user.password" type="password" required variant="outlined"></v-text-field>
-                  <v-text-field label="Confirm Password" v-model="user.confirmPassword" type="password" required variant="outlined"></v-text-field>
+                  <v-text-field label="Password" v-model="user.password" type="password" variant="outlined" :rules="passwordRules" required></v-text-field>
+                  <v-text-field label="Confirm Password" v-model="user.confirmPassword" type="password" variant="outlined" :rules="confirmPasswordRules" required></v-text-field>
 
 
                   <div class="d-flex">
@@ -113,24 +113,46 @@ data: () => ({
 
 }),
 
+computed: {
+    passwordRules() {
+      return [
+        (v) => !!v || 'Password is required',
+        (v) => v.length >= 6 || 'Password must be at least 6 characters',
+      ];
+    },
+    confirmPasswordRules() {
+      return [
+        (v) => !!v || 'Confirm Password is required',
+        (v) => v === this.user.password || 'Passwords do not match',
+      ];
+    },
+  },
+
 
 methods: {
 
   async save() {
-    if (this.user.id) {
-        // If ID is present, update data using the API
-        this.update(this.user.id);
-        this.submitted = true;
-        setTimeout(() => {this.reset();}, 2000);
-      } else {
-         this.refreshList();
-      }
+    const { valid } = await this.$refs.form.validate()
+    if (valid) {
+      if (this.user.id) {
+          // If ID is present, update data using the API
+          this.update(this.user.id);
+          this.submitted = true;
+          setTimeout(() => {this.reset(); this.refreshList();}, 2000);
+        } else {
+          this.refreshList();
+        }
+    }
   },
 
   update(id) {
       let userUpdate = {
+        name: this.user.name,
+        phoneNumber: this.user.phoneNumber,
+        supervisorId: this.selectedSupervisor.id,
+        email: this.user.email,
+        status: this.user.status,
         password: this.user.password,
-        confirmPassword: this.user.confirmPassword,
       };
 
       userRequest.put(`/guards/${id}`, userUpdate)
@@ -168,7 +190,6 @@ methods: {
   },
 
   editItem (id) {
-    this.editing= true;
     userRequest.get(`/guards/${id}`)
         .then((response) => {
           this.user = response.data.data;
@@ -189,6 +210,7 @@ methods: {
     this.user = this.defaultuser;
     this.editing = false;
     this.submitted= false;
+    this.$refs.form.reset();
   },
 
 },

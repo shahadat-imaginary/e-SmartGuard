@@ -41,13 +41,13 @@
             <v-sheet class="mx-auto">
               <div v-if="!submitted">
               <v-form ref="form" @submit.prevent="save" lazy-validation>
-                <v-text-field v-model="user.name" label="User Name *" variant="outlined" required></v-text-field>
-                <v-text-field v-model="user.phoneNumber" label="Mobile No. *" :type="Number" variant="outlined" required></v-text-field>
-                <v-text-field v-model="user.position" label="Position *" variant="outlined" required></v-text-field>
-                <v-text-field v-model="user.email" label="Email" type="email" variant="outlined" required></v-text-field>
+                <v-text-field v-model="user.name" label="User Name *" variant="outlined" :rules="nameRules" required></v-text-field>
+                <v-text-field v-model="user.phoneNumber" label="Mobile No. *" :type="Number" variant="outlined" :rules="phoneRules" required></v-text-field>
+                <v-text-field v-model="user.position" label="Position *" variant="outlined" :rules="positionRules" required></v-text-field>
+                <v-text-field v-model="user.email" label="Email" type="email" variant="outlined" :rules="emailRules" required></v-text-field>
                 <div v-if="!editing">
-                  <v-text-field label="Password" v-model="user.password" type="password" required variant="outlined"></v-text-field>
-                  <v-text-field label="Confirm Password" v-model="user.confirmPassword" type="password" required variant="outlined"></v-text-field>
+                  <v-text-field label="Password" v-model="user.password" type="password" variant="outlined" :rules="passwordRules" required></v-text-field>
+                  <v-text-field label="Confirm Password" v-model="user.confirmPassword" type="password" variant="outlined" :rules="confirmPasswordRules" required></v-text-field>
                 </div>
                 <div v-if="editing">
                   <v-select v-model="user.status" label="Status *" :items="this.status" variant="outlined" required></v-select>
@@ -114,39 +114,79 @@ data: () => ({
   submitted: false,
 }),
 
+computed: {
+    nameRules() {
+      return [
+        (v) => !!v || 'Name is required',
+        (v) => v.length >= 3 || 'Name must be at least 3 characters',
+      ];
+    },
+    phoneRules() {
+      return [
+        (v) => !!v || 'Number is required',
+        (v) => /^(01){1}[3-9]{1}\d{8}$/.test(v) || 'Phone Number must be at least 11 characters like 01711000000',
+      ];
+    },
+    positionRules() {
+      return [
+        (v) => !!v || 'Position is required',
+        (v) => v.length >= 2 || 'Name must be at least 2 characters',
+      ];
+    },
+    emailRules() {
+      return [
+        (v) => !!v || 'Email is required',
+        (v) => /^(([^<>()[\]\\.,;:\s@']+(\.[^<>()\\[\]\\.,;:\s@']+)*)|('.+'))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(v) || 'E-mail must be valid',
+      ];
+    },
+    passwordRules() {
+      return [
+        (v) => !!v || 'Password is required',
+        (v) => v.length >= 6 || 'Password must be at least 6 characters',
+      ];
+    },
+    confirmPasswordRules() {
+      return [
+        (v) => !!v || 'Confirm Password is required',
+        (v) => v === this.user.password || 'Passwords do not match',
+      ];
+    },
+  },
+
 
 methods: {
 
   async save() {
-    if (this.user.id) {
-        // If ID is present, update data using the API
-        this.update(this.user.id);
-        this.submitted = true;
-        setTimeout(() => {this.reset();}, 2000);
-      } else {
-      let userCreate = {
-        name: this.user.name,
-        phoneNumber: this.user.phoneNumber,
-        position: this.user.position,
-        email: this.user.email,
-        password: this.user.password,
-        confirmPassword: this.user.confirmPassword,
-      };
-
-      userRequest.post('/users', userCreate)
-          .then((response) => {
-            this.user.id = response.data.id;
-            console.log(response.data);
+    const { valid } = await this.$refs.form.validate()
+    if (valid) {
+        if (this.user.id) {
+            this.update(this.user.id);
             this.submitted = true;
-            setTimeout(() => {
-              this.reset();
-              this.retrieveUsers();
-            }, 2000);
+            setTimeout(() => {this.reset();}, 2000);
+          } else {
+          let userCreate = {
+            name: this.user.name,
+            phoneNumber: this.user.phoneNumber,
+            position: this.user.position,
+            email: this.user.email,
+            password: this.user.password,
+          };
 
-          })
-          .catch((e) => {
-            console.log(e);
-          });
+          userRequest.post('/users', userCreate)
+              .then((response) => {
+                this.user.id = response.data.id;
+                console.log(response.data);
+                this.submitted = true;
+                setTimeout(() => {
+                  this.reset();
+                  this.retrieveUsers();
+                }, 2000);
+
+              })
+              .catch((e) => {
+                console.log(e);
+              });
+          }
       }
   },
 
@@ -189,6 +229,7 @@ methods: {
     this.user = this.defaultuser;
     this.editing = false;
     this.submitted= false;
+    this.$refs.form.reset();
   },
 
   editItem (id) {

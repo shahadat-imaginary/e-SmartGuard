@@ -25,7 +25,7 @@
                 <v-data-table
                   :headers="headers"
                   :items="patrolItems"
-                  :search="search" ref="dataTable">
+                  :search="search">
 
                   <template v-slot:[`item.date`]="{ item }">
                     <!-- {{ item.columns.id }} -->
@@ -54,9 +54,9 @@
             <v-sheet class="mx-auto">
               <div v-if="!submitted">
                 <v-form ref="form" @submit.prevent="save" v-model="valid" lazy-validation>
-                  <v-text-field v-model="startdate" type="date" label="Date *" variant="outlined" required ></v-text-field>
+                  <v-text-field v-model="startdate" type="date" label="Start Date *" variant="outlined" required ></v-text-field>
                   <v-text-field v-model="startTime" type="time" label="Start Time *" variant="outlined" required></v-text-field>
-                  <v-text-field v-model="enddate" type="date" label="Date *" variant="outlined" required ></v-text-field>
+                  <v-text-field v-model="enddate" type="date" label="End Date *" variant="outlined" required ></v-text-field>
                   <v-text-field v-model="endTime" type="time" label="End Time *" variant="outlined" required></v-text-field>
                   <v-select v-model="selectedGuard" label="Guard Name *" item-value="id" return-object="" item-title="name" :items="this.items_guard"  variant="outlined" required></v-select>
                   <v-select v-model="selectedRoute" label="Route *" item-value="id" return-object="" item-title="name" :items="this.items_route" variant="outlined" required></v-select>
@@ -143,8 +143,8 @@
             let patrolCreate = {
               guardId: this.selectedGuard.id,
               routeId: this.selectedRoute.id,
-              start: this.startdate + '' + this.startTime,
-              end: this.enddate + '' + this.endTime,
+              start: this.startdate + 'T' + this.startTime + ':00',
+              end: this.enddate + 'T' + this.endTime + ':00',
             };
 
             userRequest.post('/patrols', patrolCreate)
@@ -169,8 +169,8 @@
             let patrolUpdate = {
               guardId: this.selectedGuard.id,
               routeId: this.selectedRoute.id,
-              start: this.startdate + '' + this.startTime,
-              end: this.enddate + '' + this.endTime,
+              start: this.startdate + 'T' + this.startTime + ':00',
+              end: this.enddate + 'T' + this.endTime + ':00',
             };
 
             userRequest.put(`/patrols/${id}`, patrolUpdate)
@@ -178,10 +178,10 @@
                 this.patrol = response.data.data;
                 console.log(response.data);
                 // this.selectedSupervisor= this.selectedSupervisor.id;
-                this.startdate=moment(response.data.start).format("YYYY-MM-DD")
-                this.startTime=moment(response.data.start).format("HH:MM")
-                this.enddate=moment(response.data.end).format("YYYY-MM-DD")
-                this.endTime=moment(response.data.end).format("HH:MM")
+                this.startdate=moment(response.data.data.start).format("YYYY-MM-DD")
+                this.startTime=moment(response.data.data.start).format("HH:MM")
+                this.enddate=moment(response.data.data.end).format("YYYY-MM-DD")
+                this.endTime=moment(response.data.data.end).format("HH:MM")
                 this.selectedGuard= null;
                 this.selectedRoute= null;
                 this.refreshList();
@@ -231,10 +231,13 @@
                 this.patrol = response.data.data;
                 console.log("get details", response.data);
                 // console.log("get details time", );
-                this.startdate=moment(response.data.start).format("YYYY-MM-DD")
-                this.startTime=moment(response.data.start).format("HH:MM")
-                this.enddate=moment(response.data.end).format("YYYY-MM-DD")
-                this.endTime=moment(response.data.end).format("HH:MM")
+                // console.log('start11:', (response.data.data.start),);
+                // console.log('start:', moment(response.data.start).format("YYYY-MM-DD"),);
+                // console.log('End:', moment(response.data.end).format("YYYY-MM-DD"),);
+                this.startdate=moment(response.data.data.start).format("YYYY-MM-DD")
+                this.startTime=moment(response.data.data.start).format("HH:MM")
+                this.enddate=moment(response.data.data.end).format("YYYY-MM-DD")
+                this.endTime=moment(response.data.data.end).format("HH:MM")
                 this.selectedGuard = response.data.data.guard;
                 this.selectedRoute = response.data.data.route;
               })

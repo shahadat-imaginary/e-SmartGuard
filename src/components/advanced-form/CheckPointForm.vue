@@ -41,9 +41,9 @@
             <v-sheet class="mx-auto">
               <div v-if="!submitted">
                 <v-form ref="form" @submit.prevent="save" v-model="valid" lazy-validation>
-                  <v-text-field v-model="checkItem.name" label="Check Point Name *" variant="outlined" required></v-text-field>
-                  <v-text-field v-model="checkItem.latitude" label="Lalitude *" :type="Number" variant="outlined" required></v-text-field>
-                  <v-text-field v-model="checkItem.longitude" label="Longitude *" :type="Number" required variant="outlined"></v-text-field>
+                  <v-text-field v-model="checkItem.name" label="Check Point Name *" variant="outlined" :rules="checkpointnameRules" required></v-text-field>
+                  <v-text-field v-model="checkItem.latitude" label="Lalitude *" :type="Number" variant="outlined" :rules="latitudeRules" required></v-text-field>
+                  <v-text-field v-model="checkItem.longitude" label="Longitude *" :type="Number" variant="outlined" :rules="longitudeRules" required></v-text-field>
 
                   <div class="d-flex">
                     <v-btn color="success" class="mt-4 mr-2" type="submit">Save</v-btn>
@@ -95,36 +95,58 @@ data: () => ({
   submitted: false,
 }),
 
+computed: {
+    checkpointnameRules() {
+      return [
+        (v) => !!v || 'Name is required',
+        (v) => v.length >= 3 || 'Name must be at least 3 characters',
+      ];
+    },
+    latitudeRules() {
+      return [
+        (v) => !!v || 'Latitude is required',
+      ];
+    },
+    longitudeRules() {
+      return [
+        (v) => !!v || 'Longitude is required',
+      ];
+    },
+  },
+
 
 methods: {
 
   async save() {
-    if (this.checkItem.id) {
-        // If ID is present, update data using the API
-        this.update(this.checkItem.id);
-        this.submitted = true;
-        setTimeout(() => {this.reset();}, 2000);
-      } else {
-      let checkPointCreate = {
-        name: this.checkItem.name,
-        latitude: this.checkItem.latitude,
-        longitude: this.checkItem.longitude,
-      };
-
-      userRequest.post('/checkpoints', checkPointCreate)
-          .then((response) => {
-            this.checkItem.id = response.data.id;
-            console.log(response.data);
+    const { valid } = await this.$refs.form.validate()
+    if (valid) {
+        if (this.checkItem.id) {
+            // If ID is present, update data using the API
+            this.update(this.checkItem.id);
             this.submitted = true;
-              setTimeout(() => {
-                this.reset();
-                this.retrieveCheckPoint();
-              }, 2000);
-          })
-          .catch((e) => {
-            console.log(e);
-          });
-    }
+            setTimeout(() => {this.reset();}, 2000);
+          } else {
+            let checkPointCreate = {
+              name: this.checkItem.name,
+              latitude: this.checkItem.latitude,
+              longitude: this.checkItem.longitude,
+            };
+
+            userRequest.post('/checkpoints', checkPointCreate)
+                .then((response) => {
+                  this.checkItem.id = response.data.id;
+                  console.log(response.data);
+                  this.submitted = true;
+                    setTimeout(() => {
+                      this.reset();
+                      this.retrieveCheckPoint();
+                    }, 2000);
+                })
+                .catch((e) => {
+                  console.log(e);
+                });
+          }
+      }
   },
 
   update(id) {
@@ -163,6 +185,7 @@ methods: {
   reset () {
     this.checkItem = this.defaultcheckItem;
     this.submitted= false;
+    this.$refs.form.reset();
   },
 
   editItem (id) {

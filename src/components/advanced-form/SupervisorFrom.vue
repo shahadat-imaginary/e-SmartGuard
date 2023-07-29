@@ -148,7 +148,9 @@ computed: {
 methods: {
 
   async save() {
-    this.$refs.form.validate();
+    const { valid } = await this.$refs.form.validate()
+    // console.log('validate:',valid)
+    if(valid){
     if (this.user.id) {
         // If ID is present, update data using the API
         this.update(this.user.id);
@@ -176,6 +178,7 @@ methods: {
             console.log(e);
           });
       }
+    }
   },
 
   update(id) {

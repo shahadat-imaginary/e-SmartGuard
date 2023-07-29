@@ -40,12 +40,12 @@
             <v-sheet class="mx-auto">
               <div v-if="!submitted">
               <v-form ref="form" @submit.prevent="save" lazy-validation>
-                <v-text-field v-model="user.name" label="User Name *" variant="outlined" required disabled></v-text-field>
-                <v-text-field v-model="user.phoneNumber" label="Mobile No. *" :type="Number" variant="outlined" required disabled></v-text-field>
-                <v-text-field v-model="user.position" label="Position *" variant="outlined" required disabled></v-text-field>
-                <v-text-field v-model="user.email" label="Email" type="email" variant="outlined" required disabled></v-text-field>
-                <v-text-field label="Password" v-model="user.password" type="password" required variant="outlined"></v-text-field>
-                <v-text-field label="Confirm Password" v-model="user.confirmPassword" type="password" required variant="outlined"></v-text-field>
+                <v-text-field v-model="user.name" label="User Name *" variant="outlined" disabled></v-text-field>
+                <v-text-field v-model="user.phoneNumber" label="Mobile No. *" :type="Number" variant="outlined" disabled></v-text-field>
+                <v-text-field v-model="user.position" label="Position *" variant="outlined" disabled></v-text-field>
+                <v-text-field v-model="user.email" label="Email" type="email" variant="outlined" disabled></v-text-field>
+                <v-text-field label="Password" v-model="user.password" type="password" variant="outlined" :rules="passwordRules" required></v-text-field>
+                <v-text-field label="Confirm Password" v-model="user.confirmPassword" type="password" variant="outlined" :rules="confirmPasswordRules" required></v-text-field>
 
                 <div class="d-flex">
                   <v-btn color="success" class="mt-4 mr-2" type="submit">Save</v-btn>
@@ -104,15 +104,40 @@ data: () => ({
   submitted: false,
 }),
 
+computed: {
+    passwordRules() {
+      return [
+        (v) => !!v || 'Password is required',
+        (v) => v.length >= 6 || 'Password must be at least 6 characters',
+      ];
+    },
+    confirmPasswordRules() {
+      return [
+        (v) => !!v || 'Confirm Password is required',
+        (v) => v === this.user.password || 'Passwords do not match',
+      ];
+    },
+  },
+
 
 methods: {
 
   async save() {
-    if (this.user.id) {
-        // If ID is present, update data using the API
-        this.update(this.user.id);
-        this.submitted = true;
-        setTimeout(() => {this.reset();}, 2000);
+    const { valid } = await this.$refs.form.validate();
+    if(valid) {
+        if (this.user.id) {
+          // If ID is present, update data using the API
+          this.update(this.user.id);
+          this.submitted = true;
+          setTimeout(() => {
+            this.reset();
+            this.refreshList();
+          }, 2000);
+
+        } else {
+          this.submitted = false;
+          this.retrieveUsers();
+        }
       }
   },
 
@@ -124,13 +149,13 @@ methods: {
         email: this.user.email,
         status: this.user.status,
         password: this.user.password,
-        confirmPassword: this.user.confirmPassword,
       };
 
       userRequest.put(`/users/${id}`, userUpdate)
         .then(response => {
           this.user = response.data.data;
           console.log(response.data);
+          this.retrieveUsers();
         })
         .catch(e => {
           console.log(e);
@@ -154,6 +179,8 @@ methods: {
 
   reset () {
     this.user = this.defaultuser;
+    this.editing = false;
+    this.submitted= false;
     this.$refs.form.reset();
   },
 
