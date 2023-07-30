@@ -27,9 +27,12 @@
                   :items="patrolItems"
                   :search="search">
 
-                  <template v-slot:[`item.date`]="{ item }">
-                    <!-- {{ item.columns.id }} -->
-                    {{(item.columns.start)}} - {{(item.columns.end)}}
+                  <template v-slot:[`item.start`]="{ item }">
+                    <span>{{ new Date(item.columns.start).toLocaleString() }}</span>
+                  </template>
+
+                  <template v-slot:[`item.end`]="{ item }">
+                    <span>{{ new Date(item.columns.end).toLocaleString() }}</span>
                   </template>
 
                   <template v-slot:[`item.guard`]="{ item }">
@@ -95,10 +98,10 @@
         search: '',
         headers: [
             { key: 'id', title: '#', align: ' d-none' },
-            { key: 'start', title: 'StartDate' },
-            { key: 'end', title: 'EndDate' },
             { key: 'guard', title: 'Guard'},
             { key: 'route', title: 'Route' },
+            { key: 'start', title: 'Start' },
+            { key: 'end', title: 'End' },
             { key: 'actions', title: 'Actions', sortable: false },
         ],
         patrolItems: [],

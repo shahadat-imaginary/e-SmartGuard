@@ -28,7 +28,7 @@
                   :search="search">
 
                     <template v-slot:[`item.supervisor`]="{ item }">
-                      {{ item.columns.supervisor}}
+                      {{ item.columns.supervisor.name }}
                     </template>
 
                     <template v-slot:[`item.actions`]="{ item }">

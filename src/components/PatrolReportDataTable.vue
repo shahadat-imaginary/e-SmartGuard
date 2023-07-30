@@ -25,6 +25,26 @@
             :items="items"
             :search="search"
           >
+          <template v-slot:[`item.date`]="{ item }">
+            <span>{{ new Date(item.columns.start).toDateString() }}</span>
+          </template>
+
+          <template v-slot:[`item.guard`]="{ item }">
+            <span>{{ item.columns.guard.name }}</span>
+          </template>
+
+          <template v-slot:[`item.route`]="{ item }">
+            <span>{{ item.columns.route.name }}</span>
+          </template>
+
+          <template v-slot:[`item.startedAt`]="{ item }">
+            <span>{{ new Date(item.columns.startedAt).toLocaleTimeString() }}</span>
+          </template>
+
+          <template v-slot:[`item.completedAt`]="{ item }">
+            <span>{{ item.columns.completedAt == null ? "" : new Date(item.columns.completedAt).toLocaleTimeString() }}</span>
+          </template>
+
         </v-data-table>
         </v-col>
       </v-row>
@@ -32,50 +52,38 @@
   </template>
 
   <script>
+  import userRequest from '@/axios/request';
   export default {
     data () {
       return {
         search: '',
         headers: [
-          {
-            align: 'start',
-            key: 'id',
-            sortable: false,
-            title: '#',
-          },
           { key: 'date', title: 'Date' },
-          { key: 'shiftTime', title: 'Shift Time' },
-          { key: 'guardInfo', title: 'Guard' },
+          { key: 'guard', title: 'Guard' },
           { key: 'route', title: 'Route' },
-          { key: 'scannedAt', title: 'Scanned At', sortable: false },
+          { key: 'startedAt', title: 'Start' },
+          { key: 'completedAt', title: 'End' },
         ],
-        items: [
-          {
-            id: 1,
-            date:'17/06/2023',
-            shiftTime: '03:00pm - 11:00pm',
-            guardInfo: 'PENGAWAL KEDUA, 013-2626566',
-            route: 'CP, CP2',
-            scannedAt: '-',
-          },
-          {
-            id: 2,
-            date:'20/06/2023',
-            shiftTime: '07:00am - 03:00am',
-            guardInfo: 'TP2',
-            route: 'CP3, CP2',
-            scannedAt: '-',
-          },
-          {
-            id: 3,
-            date:'23/06/2023',
-            shiftTime: '08:00am - 08:00pm',
-            guardInfo: 'TP3',
-            route: 'CP4, CP3',
-            scannedAt: '-',
-          },
-        ],
+        items: [],
       }
+    },
+    methods: {
+      retrieveAttendances() {
+            userRequest.get('/patrols/attendance')
+              .then((response) => {
+                this.items = response.data.data.data;
+                console.log("get", response.data.data.data);
+              })
+              .catch((e) => {
+                console.log(e);
+              });
+        }
+    },
+    refreshList() {
+          this.retrieveAttendances();
+        },
+    mounted() {
+      this.retrieveAttendances();
     },
   }
 </script>

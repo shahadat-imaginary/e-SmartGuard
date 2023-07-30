@@ -50,12 +50,12 @@
               </template>
               <v-list-item prepend-icon="mdi mdi-circle-outline" value="Patrols Report" title="Patrols Report" to="/patrol-report"></v-list-item>
             </v-list-group>
-            <v-list-group value="Administrator">
+            <!-- <v-list-group value="Administrator">
               <template v-slot:activator="{ props }">
                 <v-list-item v-bind="props" prepend-icon="mdi mdi-cogs" title="Administrator"></v-list-item>
               </template>
               <v-list-item prepend-icon="mdi mdi-circle-outline" value="User Access" title="User Access"></v-list-item>
-            </v-list-group>
+            </v-list-group> -->
 
           </v-list>
       </v-navigation-drawer>
