@@ -23,9 +23,11 @@
 
               <v-card-item>
                 <v-data-table
+                  v-model:page="page"
                   :headers="headers"
                   :items="routeItems"
-                  :search="search">
+                  :search="search"
+                  :items-per-page="itemsPerPage">
 
                     <template v-slot:[`item.routeCheckpoints`]="{ item }">
                       {{ checkpointData(item.columns.routeCheckpoints)}}
@@ -74,6 +76,8 @@ import userRequest from '@/axios/request';
 
 export default {
 data: () => ({
+  page: 1,
+  itemsPerPage: 5,
   search: '',
   headers: [
       { key: 'id', title: '#', align: ' d-none' },
@@ -97,6 +101,12 @@ data: () => ({
     routeCheckpoints: null,
   },
 }),
+
+computed: {
+    pageCount () {
+      return Math.ceil(this.routeItems.length / this.itemsPerPage)
+    },
+},
 
 methods: {
   async save() {

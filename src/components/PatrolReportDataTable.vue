@@ -21,12 +21,14 @@
       <v-row class="mt-0">
         <v-col md="12">
           <v-data-table
+            v-model:page="page"
             :headers="headers"
             :items="items"
+            :items-per-page="itemsPerPage"
             :search="search"
           >
-          <template v-slot:[`item.date`]="{ item }">
-            <span>{{ new Date(item.columns.start).toDateString() }}</span>
+          <template v-slot:[`item.start`]="{ item }">
+            <span>{{ formatDate(new Date(item.columns.start).toLocaleDateString()) }}</span>
           </template>
 
           <template v-slot:[`item.guard`]="{ item }">
@@ -53,12 +55,22 @@
 
   <script>
   import userRequest from '@/axios/request';
+  import { inject } from 'vue';
+  import moment from "moment";
+
   export default {
+    setup() {
+      const moment = inject('moment');
+      return { moment };
+    },
+
     data () {
       return {
+        page: 1,
+        itemsPerPage: 5,
         search: '',
         headers: [
-          { key: 'date', title: 'Date' },
+          { key: 'start', title: 'Date' },
           { key: 'guard', title: 'Guard' },
           { key: 'route', title: 'Route' },
           { key: 'startedAt', title: 'Start' },
@@ -67,6 +79,13 @@
         items: [],
       }
     },
+
+    computed: {
+      pageCount () {
+        return Math.ceil(this.items.length / this.itemsPerPage)
+      },
+    },
+
     methods: {
       retrieveAttendances() {
             userRequest.get('/patrols/attendance')
@@ -77,11 +96,17 @@
               .catch((e) => {
                 console.log(e);
               });
-        }
-    },
-    refreshList() {
-          this.retrieveAttendances();
         },
+
+        formatDate (value) {
+          return moment(value).format("DD/MM/YYYY")
+        },
+    },
+
+    refreshList() {
+      this.retrieveAttendances();
+    },
+
     mounted() {
       this.retrieveAttendances();
     },

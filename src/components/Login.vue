@@ -14,7 +14,7 @@
     </v-contain>
       <v-form @submit.prevent="submitForm" v-model="isValid" class="pt-4" ref="form" lazy-validation>
         <v-text-field append-inner-icon="mdi mdi-account" v-model="email" label="MyKad No." :rules="emailRules" variant="outlined" required></v-text-field>
-        <v-text-field append-inner-icon="mdi mdi-lock" v-model="password" type="password" label="password" variant="outlined" required></v-text-field>
+        <v-text-field append-inner-icon="mdi mdi-lock" v-model="password" type="password" label="password" :rules="passwordRules" variant="outlined" required></v-text-field>
         <v-checkbox class="d-flex justify-center"
           v-model="agreement"
           :rules="[v => !!v || 'You must agree to continue!']"
@@ -33,9 +33,6 @@
           Submit
         </v-btn>
       </v-card-actions>
-      <v-card-actions class="d-flex justify-center">
-        <a href="#" class="text-body-2 font-weight-regular">Forgot Password?</a>
-      </v-card-actions>
     </v-card>
 </div>
   </template>
@@ -50,40 +47,50 @@ export default {
             isValid: false,
             isLoading: false,
             agreement: false,
-            rules: {
-                required: v => !!v || 'This field is required',
-            },
-            emailRules: [
-              v => !!v || 'E-mail is required',
-              v => /^(([^<>()[\]\\.,;:\s@']+(\.[^<>()\\[\]\\.,;:\s@']+)*)|('.+'))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(v) || 'E-mail must be valid',
-            ],
         };
+    },
+    computed: {
+        emailRules() {
+          return [
+            (v) => !!v || 'Email is required',
+            (v) => /^(([^<>()[\]\\.,;:\s@']+(\.[^<>()\\[\]\\.,;:\s@']+)*)|('.+'))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(v) || 'E-mail must be valid',
+          ];
+        },
+        passwordRules() {
+          return [
+            (v) => !!v || 'Password is required',
+            (v) => v.length >= 6 || 'Password must be at least 6 characters',
+          ];
+        },
     },
     methods: {
         async login() {
-          const credentials = {
-            email: this.email,
-            password: this.password,
-          };
+          const { valid } = await this.$refs.form.validate();
+          if (valid) {
+              const credentials = {
+                email: this.email,
+                password: this.password,
+              };
 
-          try {
-            // Replace 'api-url' with the actual URL of your authentication endpoint.
-            const {data} = await axios.post('http://shahadat001-001-site1.ctempurl.com/api/users/login', credentials);
-            console.log('test:', data);
+              try {
+                // Replace 'api-url' with the actual URL of your authentication endpoint.
+                const {data} = await axios.post('http://shahadat001-001-site1.ctempurl.com/api/users/login', credentials);
+                console.log('test:', data);
 
-            // Assuming the API returns a token in the response data upon successful authentication.
-            const token = data.data.token;
+                // Assuming the API returns a token in the response data upon successful authentication.
+                const token = data.data.token;
 
-            // Store the token in local storage for future API requests.
-            localStorage.setItem('token', JSON.stringify(token));
+                // Store the token in local storage for future API requests.
+                localStorage.setItem('token', JSON.stringify(token));
 
-            // You can redirect the user to a new page or handle the successful login as per your application flow.
-            // For example:
-            this.$router.push('/');
+                // You can redirect the user to a new page or handle the successful login as per your application flow.
+                // For example:
+                this.$router.push('/');
 
-          } catch (error) {
-            console.error('Login failed:', error);
-            // Handle login error here, such as showing an error message to the user.
+              } catch (error) {
+                console.error('Login failed:', error);
+                // Handle login error here, such as showing an error message to the user.
+              }
           }
         },
     },

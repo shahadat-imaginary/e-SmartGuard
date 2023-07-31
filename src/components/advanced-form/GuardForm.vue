@@ -23,8 +23,10 @@
 
               <v-card-item>
                 <v-data-table
+                  v-model:page="page"
                   :headers="headers"
                   :items="guardItems"
+                  :items-per-page="itemsPerPage"
                   :search="search">
 
                     <template v-slot:[`item.supervisor`]="{ item }">
@@ -83,6 +85,8 @@ import userRequest from '@/axios/request';
 
 export default {
 data: () => ({
+  page: 1,
+  itemsPerPage: 5,
   search: '',
   headers: [
       { key: 'id', title: '#', align: ' d-none' },
@@ -152,6 +156,9 @@ computed: {
         (v) => !!v || 'Confirm Password is required',
         (v) => v === this.user.password || 'Passwords do not match',
       ];
+    },
+    pageCount () {
+      return Math.ceil(this.guardItems.length / this.itemsPerPage)
     },
   },
 

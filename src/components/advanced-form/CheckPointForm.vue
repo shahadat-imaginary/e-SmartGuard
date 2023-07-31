@@ -23,8 +23,10 @@
 
               <v-card-item>
                 <v-data-table
+                  v-model:page="page"
                   :headers="headers"
                   :items="checkPointItems"
+                  :items-per-page="itemsPerPage"
                   :search="search">
                     <template v-slot:[`item.actions`]="{ item }">
                       <v-icon size="small" class="me-2" @click="editItem(item.columns.id)">mdi-square-edit-outline</v-icon>
@@ -70,6 +72,8 @@ import userRequest from '@/axios/request';
 
 export default {
 data: () => ({
+  page: 1,
+  itemsPerPage: 5,
   search: '',
   headers: [
       { key: 'id', title: '#', align: ' d-none' },
@@ -111,6 +115,10 @@ computed: {
       return [
         (v) => !!v || 'Longitude is required',
       ];
+    },
+
+    pageCount () {
+      return Math.ceil(this.checkPointItems.length / this.itemsPerPage)
     },
   },
 

@@ -23,16 +23,18 @@
 
               <v-card-item>
                 <v-data-table
+                  v-model:page="page"
                   :headers="headers"
                   :items="patrolItems"
+                  :items-per-page="itemsPerPage"
                   :search="search">
 
                   <template v-slot:[`item.start`]="{ item }">
-                    <span>{{ new Date(item.columns.start).toLocaleString() }}</span>
+                    <span>{{ formatDateTime(new Date(item.columns.start).toLocaleString()) }}</span>
                   </template>
 
                   <template v-slot:[`item.end`]="{ item }">
-                    <span>{{ new Date(item.columns.end).toLocaleString() }}</span>
+                    <span>{{ formatDateTime(new Date(item.columns.end).toLocaleString()) }}</span>
                   </template>
 
                   <template v-slot:[`item.guard`]="{ item }">
@@ -42,10 +44,6 @@
                     {{(item.columns.route.name)}}
                   </template>
 
-                    <template v-slot:[`item.actions`]="{ item }">
-                      <v-icon size="small" class="me-2" @click="editItem(item.columns.id)">mdi-square-edit-outline</v-icon>
-                      <v-icon size="small" @click="deleteItem(item.columns.id)">mdi-delete</v-icon>
-                    </template>
                 </v-data-table>
               </v-card-item>
         </v-card>
@@ -95,6 +93,8 @@
       return { moment };
     },
     data: () => ({
+        page: 1,
+        itemsPerPage: 5,
         search: '',
         headers: [
             { key: 'id', title: '#', align: ' d-none' },
@@ -102,7 +102,7 @@
             { key: 'route', title: 'Route' },
             { key: 'start', title: 'Start' },
             { key: 'end', title: 'End' },
-            { key: 'actions', title: 'Actions', sortable: false },
+            // { key: 'actions', title: 'Actions', sortable: false },
         ],
         patrolItems: [],
         items_guard: [],
@@ -133,6 +133,11 @@
         },
 
       }),
+      computed: {
+        pageCount () {
+          return Math.ceil(this.patrolItems.length / this.itemsPerPage)
+        },
+      },
 
       methods: {
 
@@ -180,7 +185,7 @@
               .then(response => {
                 this.patrol = response.data.data;
                 console.log(response.data);
-                // this.selectedSupervisor= this.selectedSupervisor.id;
+
                 this.startdate=moment(response.data.data.start).format("YYYY-MM-DD")
                 this.startTime=moment(response.data.data.start).format("HH:MM")
                 this.enddate=moment(response.data.data.end).format("YYYY-MM-DD")
@@ -233,10 +238,6 @@
               .then((response) => {
                 this.patrol = response.data.data;
                 console.log("get details", response.data);
-                // console.log("get details time", );
-                // console.log('start11:', (response.data.data.start),);
-                // console.log('start:', moment(response.data.start).format("YYYY-MM-DD"),);
-                // console.log('End:', moment(response.data.end).format("YYYY-MM-DD"),);
                 this.startdate=moment(response.data.data.start).format("YYYY-MM-DD")
                 this.startTime=moment(response.data.data.start).format("HH:MM")
                 this.enddate=moment(response.data.data.end).format("YYYY-MM-DD")
@@ -261,7 +262,11 @@
           this.$refs.form.reset();
         },
 
+        formatDateTime (value) {
+          return moment(value).format("DD/MM/YYYY, HH:MM:SS A")
         },
+
+        }, //methods end.....
 
         mounted() {
           this.retrievePatrols();
