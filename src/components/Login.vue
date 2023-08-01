@@ -15,7 +15,7 @@
       <v-form @submit.prevent="submitForm" v-model="isValid" class="pt-4" ref="form" lazy-validation>
         <v-text-field append-inner-icon="mdi mdi-account" v-model="email" label="MyKad No." :rules="emailRules" variant="outlined" required></v-text-field>
         <v-text-field append-inner-icon="mdi mdi-lock" v-model="password" type="password" label="password" :rules="passwordRules" variant="outlined" required></v-text-field>
-        <v-checkbox class="d-flex justify-center"
+        <v-checkbox class="justify-center"
           v-model="agreement"
           :rules="[v => !!v || 'You must agree to continue!']"
           color="deep-purple" required
@@ -26,7 +26,7 @@
         </v-checkbox>
       </v-form>
 
-      <v-card-actions class="d-flex justify-center">
+      <v-card-actions class="justify-center">
         <v-btn style="color: #fff; background-color: #218838; border-color: #1e7e34;"
           :loading="isLoading" @click="login" :type="submit"
         >
@@ -85,7 +85,7 @@ export default {
 
                 // You can redirect the user to a new page or handle the successful login as per your application flow.
                 // For example:
-                this.$router.push('/');
+                this.$router.push('/dashboard');
 
               } catch (error) {
                 console.error('Login failed:', error);

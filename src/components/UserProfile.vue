@@ -6,17 +6,14 @@
           <v-card-title>My Profile</v-card-title>
           <v-card-text class="mt-3">
             <v-sheet class="mx-auto">
-              <v-form ref="form" v-model="valid" lazy-validation>
-                <v-text-field v-model="userName" label="User Name *" variant="outlined"></v-text-field>
-                <v-text-field v-model="userType" label="User Type *" variant="outlined" required></v-text-field>
-                <v-text-field v-model="mobileNo" label="Mobile No. *" :type="Number" variant="outlined" required></v-text-field>
-                <v-text-field v-model="email" label="Email" type="email" variant="outlined" required></v-text-field>
-                <v-text-field v-model="address" label="Address *" variant="outlined" required></v-text-field>
-                <v-file-input @change="Preview_image" v-model="image" label="File input" density="compact" variant="outlined"></v-file-input>
-                <v-img :src="url"></v-img>
+              <v-form ref="form" v-model="valid" @submit.prevent="saveProfile" lazy-validation>
+                <v-text-field v-model="user.name" label="User Name *" :rules="nameRules" variant="outlined"></v-text-field>
+                <v-text-field v-model="user.phoneNumber" label="Mobile No. *" :type="Number" :rules="phoneRules" variant="outlined" required></v-text-field>
+                <v-text-field v-model="user.position" label="Position *" variant="outlined" :rules="positionRules" required></v-text-field>
+                <v-text-field v-model="user.email" label="Email" type="email" variant="outlined" :rules="emailRules" required></v-text-field>
 
                 <div class="d-flex">
-                  <v-btn color="success" class="mt-4 mr-2" @click="save">Update</v-btn>
+                  <v-btn color="success" class="mt-4 mr-2" :type="submit">Update</v-btn>
                   <v-btn color="error" class="mt-4" @click="reset">Reset</v-btn>
                 </div>
               </v-form>
@@ -29,12 +26,12 @@
           <v-card-title>Change Password</v-card-title>
           <v-card-text class="mt-3">
             <v-sheet class="mx-auto">
-              <v-form ref="form" v-model="valid" lazy-validation>
-                <v-text-field label="Password" v-model="editedItem.password" :rules="passwordRules" type="password" required variant="outlined"></v-text-field>
-                <v-text-field label="Confirm Password" v-model="editedItem.confirmPassword" :rules="confirmPasswordRules.concat(passwordConfirmationRule)" type="password" required variant="outlined"></v-text-field>
+              <v-form ref="form" v-model="valid" @submit.prevent="save"  lazy-validation>
+                <v-text-field label="Password" v-model="user.password" :rules="passwordRules" type="password" required variant="outlined"></v-text-field>
+                <v-text-field label="Confirm Password" v-model="user.confirmPassword" :rules="confirmPasswordRules" type="password" required variant="outlined"></v-text-field>
 
                 <div class="d-flex">
-                  <v-btn color="success" class="mt-4 mr-2" @click="save">Update</v-btn>
+                  <v-btn color="success" class="mt-4 mr-2" type="submit">Update</v-btn>
                   <v-btn color="error" class="mt-4" @click="reset">Reset</v-btn>
                 </div>
               </v-form>
@@ -47,78 +44,82 @@
 </template>
 
 <script>
+import userRequest from '@/axios/request';
 export default {
 data: () => ({
-
-  passwordRules: [v => !!v || "Password is required"],
-  confirmPasswordRules: [v => !!v || "Password is required"],
-
-  url: null,
-  image: null,
-
-  userItems: [],
-
   user: {
     id: null,
     name: '',
     phoneNumber: null,
+    position: '',
     email: '',
     password: '',
     confirmPassword: '',
-  },
-  defaultuser: {
-    id: null,
-    name: '',
-    phoneNumber: null,
-    email: '',
-    password: '',
-    confirmPassword: '',
+    status: '',
   },
 }),
 
-created () {
-  this.initialize()
+mounted() {
+  this.fetchUserProfile();
 },
 
-computed: {
-  passwordConfirmationRule() {
-      return () =>
-        this.editedItem.password === this.editedItem.confirmPassword || "Passwords do not match";
-  },
-},
 
 methods: {
-  initialize () {
-    this.userItems = [
-          {
-            id: 1,
-            userName: 'Test',
-            userId: 11,
-            position: 'Bangladesh',
-            mobileNo: 123456789,
-            email: 'test@test.com',
-            status: 'PASIVE',
-          },
-    ]
-  },
+    async saveProfile() {
+      const { valid } = await this.$refs.form.validate()
+      if (valid) {
+          if (this.user.id) {
+              this.update(this.user.id);
+              this.submitted = true;
+            }
+        }
+    },
+    async fetchUserProfile() {
+      userRequest.get(`/accounts/me`)
+        .then((response) => {
+          this.user = response.data.data;
+          console.log("get", response.data);
+        })
+        .catch((e) => {
+          console.log(e);
+        });
+    },
 
-  reset () {
-      this.$refs.form.reset()
-  },
+    update() {
+      let userUpdate = {
+        name: this.user.name,
+        phoneNumber: this.user.phoneNumber,
+        position: this.user.position,
+        email: this.user.email,
+      };
+      userRequest.put(`/accounts/me`, userUpdate)
+        .then(response => {
+          this.user = response.data.data;
+          console.log(response.data);
+          this.refreshList();
+        })
+        .catch(e => {
+          console.log(e);
+        });
+    },
+    reset () {
+      this.$refs.form.reset();
+    },
 
-  Preview_image() {
-    this.url= URL.createObjectURL(this.image)
-  },
-
-  async save () {
-    if (this.editedIndex > -1) {
-      Object.assign(this.userItems[this.editedIndex], this.editedItem)
-    } else {
-      this.userItems.push(this.editedItem)
-    }
-    this.close()
-  },
+    editItem () {
+      userRequest.get(`/accounts/me`)
+          .then((response) => {
+            this.user = response.data.data;
+            console.log("get details", response.data);
+          })
+          .catch((e) => {
+            console.log(e);
+          });
 },
+
+  },
+
+
 }
 </script>
 

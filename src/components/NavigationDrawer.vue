@@ -6,15 +6,13 @@
 
           <v-list-item
             prepend-avatar="https://randomuser.me/api/portraits/men/85.jpg"
-            title="John Leider"
-            nav to="/user-profile"
-          >
+            nav to="/user-profile" >{{ user.name }}
           </v-list-item>
 
           <v-divider></v-divider>
 
           <v-list density="compact" nav>
-            <v-list-item prepend-icon="mdi mdi-home" value="Home" title="Home" to="/"></v-list-item>
+            <v-list-item prepend-icon="mdi mdi-home" value="Home" title="Home" to="/dashboard"></v-list-item>
             <v-list-group value="Users Management ">
               <template v-slot:activator="{ props }">
                 <v-list-item v-bind="props" prepend-icon="mdi mdi-account-group" title="Users Management"></v-list-item>
@@ -73,7 +71,7 @@
               color="brown"
             >
               <v-img
-                v-if="user.initials"
+                v-if="user1.initials"
                 alt="Avatar"
                 src="https://randomuser.me/api/portraits/men/85.jpg"
               ></v-img>
@@ -87,21 +85,21 @@
                 color="brown" size="150"
               >
               <v-img
-                v-if="user.initials"
+                v-if="user1.initials"
                 alt="Avatar"
                 src="https://randomuser.me/api/portraits/men/85.jpg"
               ></v-img>
               </v-avatar>
-              <h2 class="mt-2">{{ user.fullName }}</h2>
+              <h2 class="mt-2">{{ user.name }}</h2>
               <p class="text-caption mt-1">
-                {{ user.id }}
+                {{ user.phoneNumber }}
               </p>
               <p class="text-caption mt-1">
-                {{ user.name }}
+                {{ user.position }}
               </p>
               <v-divider class="my-3"></v-divider>
               <v-btn class="me-2 text-none" color="indigo-accent-4" variant="flat" to="/user-profile">Change Password</v-btn>
-              <v-btn to="/login" class="me-2 text-none" color="red-darken-4" variant="flat">Log Out</v-btn>
+              <v-btn to="/" class="me-2 text-none" color="red-darken-4" variant="flat">Log Out</v-btn>
             </div>
           </v-card-text>
         </v-card>
@@ -110,14 +108,42 @@
   </template>
 
   <script>
+  import userRequest from '@/axios/request';
     export default {
       data: () => ({ drawer: null, rail: null,
         user: {
+          id: null,
+          name: '',
+          phoneNumber: null,
+          position: '',
+          email: '',
+          password: '',
+          confirmPassword: '',
+          status: '',
+          initials: 'https://randomuser.me/api/portraits/men/85.jpg',
+        },
+
+        user1: {
         initials: 'https://randomuser.me/api/portraits/men/85.jpg',
-        fullName: 'SUPER ADMIN',
-        id: '840412025055',
-        name: 'ADMINISTRATOR',
       },
      }),
+
+     mounted() {
+        this.fetchUserProfile();
+     },
+
+     methods: {
+        async fetchUserProfile() {
+          userRequest.get(`/accounts/me`)
+            .then((response) => {
+              this.user = response.data.data;
+              console.log("get", response.data);
+            })
+            .catch((e) => {
+              console.log(e);
+            });
+        },
+    },
+
     }
   </script>
