@@ -7,31 +7,37 @@
                 <v-toolbar-title>Supervisor List</v-toolbar-title>
               </v-toolbar>
 
-              <v-card-title>
-                <v-sheet width="260px" class="float-end">
-                  <v-text-field
-                    v-model="search"
-                    append-inner-icon="mdi-magnify"
-                    label="Search"
-                    single-line
-                    hide-details
-                    density="compact"
-                    variant="solo"
-                  ></v-text-field>
-                </v-sheet>
-              </v-card-title>
-
               <v-card-item>
                 <v-data-table
-                  v-model:page="page"
+                  :page="page"
                   :headers="headers"
                   :items="userItems"
                   :items-per-page="itemsPerPage"
-                  :search="search">
+                  :search="search"
+                  hide-default-footer>
                     <template v-slot:[`item.actions`]="{ item }">
                       <v-icon size="small" class="me-2" @click="editItem(item.columns.id)">mdi-square-edit-outline</v-icon>
-                      <v-icon size="small" @click="deleteItem(item.columns.id)">mdi-delete</v-icon>
                     </template>
+
+                    <template v-slot:bottom>
+                      <div class="text-center pt-2">
+                        <v-pagination v-model="page" :length="totalPage" :total-visible="6"></v-pagination>
+                      </div>
+                    </template>
+
+                    <template v-slot:top>
+                      <v-row class="pt-2 justify-space-between">
+                        <v-col md="2" sm="12">
+                          <v-select v-model="itemsPerPage" label="ItemsPerPage" :items="[10,25,50]" density="compact" variant="outlined" ></v-select>
+                        </v-col>
+                        <v-col md="4" sm="12">
+                          <v-text-field  :modelValue="search"
+                          @update:modelValue="updateTextField"
+                          v-model="search" append-inner-icon="mdi-magnify" label="Search" density="compact" variant="outlined"></v-text-field>
+                        </v-col>
+                      </v-row>
+                  </template>
+
                 </v-data-table>
               </v-card-item>
         </v-card>
@@ -76,179 +82,207 @@
 
 <script>
 import userRequest from '@/axios/request';
+import {debounce} from 'lodash';
 
 export default {
-data: () => ({
-  page: 1,
-  itemsPerPage: 5,
-  search: '',
-  headers: [
-      { key: 'id', title: '#', align: ' d-none' },
-      { key: 'name', title: 'Name' },
-      { key: 'phoneNumber', title: 'Mobile No.', sortable: false },
-      { key: 'email', title: 'Email' },
-      { key: 'status', title: 'Status' },
-      { key: 'actions', title: 'Actions', sortable: false },
-  ],
+  data: () => ({
+    page: 1,
+    itemsPerPage: 10,
+    totalPage:1,
+    search: '',
+    headers: [
+        { key: 'id', title: '#', align: ' d-none' },
+        { key: 'name', title: 'Name' },
+        { key: 'phoneNumber', title: 'Mobile No.', sortable: false },
+        { key: 'email', title: 'Email' },
+        { key: 'status', title: 'Status' },
+        { key: 'actions', title: 'Actions', sortable: false },
+    ],
 
-  userItems: [],
-  editing: false,
-  status:['Active', 'Inactive'],
+    userItems: [],
+    editing: false,
+    status:['Active', 'Inactive'],
 
-  user: {
-    id: null,
-    name: '',
-    phoneNumber: null,
-    email: '',
-    password: '',
-    confirmPassword: '',
-    status: '',
-  },
-  defaultuser: {
-    id: null,
-    name: '',
-    phoneNumber: null,
-    email: '',
-    password: '',
-    confirmPassword: '',
-    status: '',
-  },
-  submitted: false,
-}),
+    user: {
+      id: null,
+      name: '',
+      phoneNumber: null,
+      email: '',
+      password: '',
+      confirmPassword: '',
+      status: '',
+    },
+    defaultuser: {
+      id: null,
+      name: '',
+      phoneNumber: null,
+      email: '',
+      password: '',
+      confirmPassword: '',
+      status: '',
+    },
+    submitted: false,
+  }),
 
-computed: {
+  computed: {
     nameRules() {
-      return [
-        (v) => !!v || 'Name is required',
-        (v) => v.length >= 3 || 'Name must be at least 3 characters',
-      ];
+        return [
+          (v) => !!v || 'Name is required',
+          (v) => v.length >= 3 || 'Name must be at least 3 characters',
+        ];
     },
     phoneRules() {
-      return [
-        (v) => !!v || 'Number is required',
-        (v) => /^(01){1}[3-9]{1}\d{8}$/.test(v) || 'Phone Number must be at least 11 characters',
-      ];
+        return [
+          (v) => !!v || 'Number is required',
+          (v) => /^(01){1}[3-9]{1}\d{8}$/.test(v) || 'Phone Number must be at least 11 characters',
+        ];
     },
     emailRules() {
-      return [
-        (v) => !!v || 'Email is required',
-        (v) => /^(([^<>()[\]\\.,;:\s@']+(\.[^<>()\\[\]\\.,;:\s@']+)*)|('.+'))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(v) || 'E-mail must be valid',
-      ];
+        return [
+          (v) => !!v || 'Email is required',
+          (v) => /^(([^<>()[\]\\.,;:\s@']+(\.[^<>()\\[\]\\.,;:\s@']+)*)|('.+'))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(v) || 'E-mail must be valid',
+        ];
     },
     passwordRules() {
-      return [
-        (v) => !!v || 'Password is required',
-        (v) => v.length >= 6 || 'Password must be at least 6 characters',
-      ];
+        return [
+          (v) => !!v || 'Password is required',
+          (v) => v.length >= 6 || 'Password must be at least 6 characters',
+        ];
     },
     confirmPasswordRules() {
-      return [
-        (v) => !!v || 'Confirm Password is required',
-        (v) => v === this.user.password || 'Passwords do not match',
-      ];
-    },
-
-    pageCount () {
-      return Math.ceil(this.userItems.length / this.itemsPerPage)
+        return [
+          (v) => !!v || 'Confirm Password is required',
+          (v) => v === this.user.password || 'Passwords do not match',
+        ];
     },
   },
 
-methods: {
-
-  async save() {
-    const { valid } = await this.$refs.form.validate()
-    // console.log('validate:',valid)
-    if(valid){
-    if (this.user.id) {
-        // If ID is present, update data using the API
-        this.update(this.user.id);
-        this.submitted = true;
-        setTimeout(() => {this.reset(); this.retrieveUsers();}, 2000);
-      } else {
-      let supervisorCreate = {
-        name: this.user.name,
-        phoneNumber: this.user.phoneNumber,
-        email: this.user.email,
-        password: this.user.password,
-      };
-
-      userRequest.post('/supervisors', supervisorCreate)
-          .then((response) => {
-            this.user.id = response.data.id;
-            console.log(response.data);
-            this.submitted = true;
-            setTimeout(() => {
-              this.reset();
-              this.retrieveUsers();
-            }, 2000);
-          })
-          .catch((e) => {
-            console.log(e);
-          });
-      }
+  //this one will populate new data set when user changes current page.
+  watch: {
+    page(val){
+      this.retrieveUsers(val, this.itemsPerPage, this.search)
+    },
+    itemsPerPage(val){
+      this.retrieveUsers(this.page, val, this.search)
     }
   },
 
-  update(id) {
-    let userUpdate = {
-      name: this.user.name,
-      phoneNumber: this.user.phoneNumber,
-      position: this.user.position,
-      email: this.user.email,
-      status: this.user.status,
-    };
-    this.editing = false;
-    userRequest.put(`/supervisors/${id}`, userUpdate)
-      .then(response => {
-        this.user = response.data.data;
-        console.log(response.data);
-        this.refreshList();
-      })
-      .catch(e => {
-        console.log(e);
-      });
-  },
-
-  retrieveUsers() {
-      userRequest.get('/supervisors')
+  methods: {
+    // Get all Supervisor data.
+    retrieveUsers(page,itemPerPage,search) {
+      userRequest.get(`/supervisors?PageNumber=${page}&PageSize=${itemPerPage}&search=${search}`)
         .then((response) => {
           this.userItems = response.data.data.data;
-          console.log("get", response.data);
+          console.log("Get Supervisor:", response.data);
+          this.page= response.data.data.pageNumber;
+          this.itemsPerPage= response.data.data.pageSize;
+          this.totalPage= response.data.data.pageCount;
         })
         .catch((e) => {
           console.log(e);
         });
-  },
+    },
 
-  refreshList() {
-    this.retrieveUsers();
-  },
-
-  reset () {
-    this.user = this.defaultuser;
-    this.editing = false;
-    this.submitted= false;
-    this.$refs.form.reset();
-  },
-
-  editItem (id) {
-    this.editing= true;
-    userRequest.get(`/supervisors/${id}`)
+    // Edit Supervisor data...
+    editItem (id) {
+      this.editing= true;
+      userRequest.get(`/supervisors/${id}`)
         .then((response) => {
           this.user = response.data.data;
-          console.log("get details", response.data);
+          console.log("Get details", response.data);
         })
         .catch((e) => {
           console.log(e);
         });
-  },
+    },
 
-  },
+    // Update Supervisor data...
+    update(id) {
+      let userUpdate = {
+        name: this.user.name,
+        phoneNumber: this.user.phoneNumber,
+        position: this.user.position,
+        email: this.user.email,
+        status: this.user.status,
+      };
+      this.editing = false;
+      userRequest.put(`/supervisors/${id}`, userUpdate)
+        .then(response => {
+          this.user = response.data.data;
+          console.log("Update Supervisor:", response.data);
+          this.refreshList();
+        })
+        .catch(e => {
+          console.log(e);
+        });
+    },
+
+    // Save Supervisor data...
+    async save() {
+      const { valid } = await this.$refs.form.validate();
+      if(valid){
+      if (this.user.id) {
+          // If ID is present, update data using the API
+          this.update(this.user.id);
+          this.submitted = true;
+          setTimeout(() => {this.reset(); this.retrieveUsers();}, 2000);
+        } else {
+        let supervisorCreate = {
+          name: this.user.name,
+          phoneNumber: this.user.phoneNumber,
+          email: this.user.email,
+          password: this.user.password,
+        };
+
+        userRequest.post(`/supervisors`, supervisorCreate)
+            .then((response) => {
+              this.user.id = response.data.id;
+              console.log("Create supervisor", response.data);
+              this.submitted = true;
+              setTimeout(() => {
+                this.reset();
+                this.retrieveUsers(this.page,this.itemsPerPage,this.search);
+              }, 2000);
+            })
+            .catch((e) => {
+              console.log(e);
+            });
+        }
+      }
+    },
+
+    // Search ...
+    updateTextField: debounce(function debounceRead(e) {
+      this.retrieveUsers(this.page,this.itemsPerPage, e)
+    }, 1000),
+
+    // Pagination ......
+    pageUpdateFunction(newPageNumber) {
+      console.log('Page Update',newPageNumber);
+    },
+
+    handlePageChange (page) {
+      console.log("HandlePage", page)
+      this.retrieveUsers(page, this.itemsPerPage, this.search)
+    },
+
+    // Refresh & Reset the List...
+    refreshList() {
+      this.retrieveUsers(this.page,this.itemsPerPage, this.search);
+    },
+
+    reset () {
+      this.user = this.defaultuser;
+      this.editing = false;
+      this.submitted= false;
+      this.$refs.form.reset();
+    },
+
+  }, //Methods end.....
 
   mounted() {
-    this.retrieveUsers();
+    this.retrieveUsers(this.page,this.itemsPerPage,this.search);
   },
-
 }
 </script>
 

@@ -30,7 +30,6 @@
                   :search="search">
                     <template v-slot:[`item.actions`]="{ item }">
                       <v-icon size="small" class="me-2" @click="editItem(item.columns.id)">mdi-square-edit-outline</v-icon>
-                      <v-icon size="small" @click="deleteItem(item.columns.id)">mdi-delete</v-icon>
                     </template>
                 </v-data-table>
               </v-card-item>
@@ -143,7 +142,7 @@ methods: {
             userRequest.post('/checkpoints', checkPointCreate)
                 .then((response) => {
                   this.checkItem.id = response.data.id;
-                  console.log(response.data);
+                  console.log("Create Checkpoint:", response.data);
                   this.submitted = true;
                     setTimeout(() => {
                       this.reset();
@@ -167,7 +166,7 @@ methods: {
     userRequest.put(`/checkpoints/${id}`, checkPointUpdate)
       .then(response => {
         this.checkItem = response.data.data;
-        console.log(response.data);
+        console.log("Update Checkpoint:", response.data);
         this.refreshList();
       })
       .catch(e => {
@@ -179,7 +178,7 @@ methods: {
       userRequest.get('/checkpoints')
         .then((response) => {
           this.checkPointItems = response.data.data.data;
-          console.log("get", response.data);
+          console.log("Get Checkpoint:", response.data);
         })
         .catch((e) => {
           console.log(e);
@@ -200,7 +199,7 @@ methods: {
     userRequest.get(`/checkpoints/${id}`)
         .then((response) => {
           this.checkItem = response.data.data;
-          console.log("get details", response.data);
+          console.log("Get details", response.data);
         })
         .catch((e) => {
           console.log(e);

@@ -7,27 +7,15 @@
                 <v-toolbar-title>Patrol List</v-toolbar-title>
               </v-toolbar>
 
-              <v-card-title>
-                <v-sheet width="260px" class="float-end">
-                  <v-text-field
-                    v-model="search"
-                    append-inner-icon="mdi-magnify"
-                    label="Search"
-                    single-line
-                    hide-details
-                    density="compact"
-                    variant="solo"
-                  ></v-text-field>
-                </v-sheet>
-              </v-card-title>
-
               <v-card-item>
+
                 <v-data-table
-                  v-model:page="page"
+                  :page="page"
                   :headers="headers"
                   :items="patrolItems"
                   :items-per-page="itemsPerPage"
-                  :search="search">
+                  :search="search"
+                  hide-default-footer>
 
                   <template v-slot:[`item.start`]="{ item }">
                     <span>{{ formatDateTime(new Date(item.columns.start).toLocaleString()) }}</span>
@@ -40,8 +28,31 @@
                   <template v-slot:[`item.guard`]="{ item }">
                     {{(item.columns.guard.name)}}
                   </template>
+
                   <template v-slot:[`item.route`]="{ item }">
                     {{(item.columns.route.name)}}
+                  </template>
+
+                  <template v-slot:bottom>
+                    <div class="text-center pt-2">
+                      <v-pagination
+                        v-model="page"
+                        :length="totalPage"
+                        :total-visible="6"></v-pagination>
+                    </div>
+                  </template>
+
+                  <template v-slot:top>
+                    <v-row class="pt-2 justify-space-between">
+                      <v-col md="2" sm="12">
+                        <v-select v-model="itemsPerPage" label="ItemsPerPage" :items="[10,25,50]" density="compact" variant="outlined" ></v-select>
+                      </v-col>
+                      <v-col md="4" sm="12">
+                        <v-text-field  :modelValue="search"
+                         @update:modelValue="updateTextField"
+                         v-model="search" append-inner-icon="mdi-magnify" label="Search" density="compact" variant="outlined"></v-text-field>
+                      </v-col>
+                    </v-row>
                   </template>
 
                 </v-data-table>
@@ -86,6 +97,7 @@
   import userRequest from '@/axios/request';
   import { inject } from 'vue';
   import moment from "moment";
+  import {debounce} from 'lodash'
 
   export default {
     setup() {
@@ -93,8 +105,9 @@
       return { moment };
     },
     data: () => ({
-        page: 1,
-        itemsPerPage: 5,
+      page: 1,
+        itemsPerPage: 10,
+        totalPage:1,
         search: '',
         headers: [
             { key: 'id', title: '#', align: ' d-none' },
@@ -134,13 +147,31 @@
 
       }),
       computed: {
-        pageCount () {
-          return Math.ceil(this.patrolItems.length / this.itemsPerPage)
+      },
+
+      //this one will populate new data set when user changes current page.
+      watch: {
+        page(val){
+          this.retrievePatrols(val,this.itemsPerPage, this.search)
         },
+        itemsPerPage(val){
+          this.retrievePatrols(this.page,val, this.search)
+        }
       },
 
       methods: {
+        updateTextField: debounce(function debounceRead(e) {
+          this.retrievePatrols(this.page,this.itemsPerPage, e)
+        }, 1000),
 
+        pageUpdateFunction(newPageNumber) {
+          console.log('Page Update',newPageNumber);
+          // handle other axios request here and update varibles
+        },
+        handlePageChange (page) {
+          console.log("HandlePage", page)
+          this.retrievePatrols(page,this.itemsPerPage, this.search)
+        },
         async save() {
           if (this.patrol.id) {
               // If ID is present, update data using the API
@@ -162,7 +193,7 @@
                   this.submitted = true;
                   setTimeout(() => {
                     this.reset();
-                    this.retrievePatrols();
+                    this.retrievePatrols(this.page,this.itemsPerPage,this.search);
                   }, 2000);
                   this.selectedGuard= null;
                   this.selectedRoute= null;
@@ -199,11 +230,17 @@
               });
         },
 
-        retrievePatrols() {
-            userRequest.get('/patrols')
+        retrievePatrols(page,itemPerPage,search) {
+            userRequest.get(`/patrols?PageNumber=${page}&PageSize=${itemPerPage}&search=${search}`)
               .then((response) => {
+
+                console.log(" data list", response.data.data.data);
                 this.patrolItems = response.data.data.data;
-                console.log("get", response.data);
+
+                this.page= response.data.data.pageNumber;
+                this.itemsPerPage= response.data.data.pageSize
+
+                this.totalPage= response.data.data.pageCount
               })
               .catch((e) => {
                 console.log(e);
@@ -251,7 +288,7 @@
         },
 
         refreshList() {
-          this.retrievePatrols();
+          this.retrievePatrols(this.page,this.itemsPerPage, this.search);
           this.retrieveGuard();
           this.retrieveRoute();
         },
@@ -269,7 +306,7 @@
         }, //methods end.....
 
         mounted() {
-          this.retrievePatrols();
+          this.retrievePatrols(this.page,this.itemsPerPage,this.search);
           this.retrieveGuard();
           this.retrieveRoute();
         },

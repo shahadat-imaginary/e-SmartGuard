@@ -7,35 +7,39 @@
                 <v-toolbar-title>Guard List</v-toolbar-title>
               </v-toolbar>
 
-              <v-card-title>
-                <v-sheet width="260px" class="float-end">
-                  <v-text-field
-                    v-model="search"
-                    append-inner-icon="mdi-magnify"
-                    label="Search"
-                    single-line
-                    hide-details
-                    density="compact"
-                    variant="solo"
-                  ></v-text-field>
-                </v-sheet>
-              </v-card-title>
-
               <v-card-item>
                 <v-data-table
-                  v-model:page="page"
+                  :page="page"
                   :headers="headers"
                   :items="guardItems"
                   :items-per-page="itemsPerPage"
-                  :search="search">
-
+                  :search="search"
+                  hide-default-footer>
                     <template v-slot:[`item.supervisor`]="{ item }">
                       {{ item.columns.supervisor.name }}
                     </template>
 
                     <template v-slot:[`item.actions`]="{ item }">
                       <v-icon size="small" class="me-2" @click="editItem(item.columns.id)">mdi-square-edit-outline</v-icon>
-                      <v-icon size="small" @click="deleteItem(item.columns.id)">mdi-delete</v-icon>
+                    </template>
+
+                    <template v-slot:bottom>
+                      <div class="text-center pt-2">
+                        <v-pagination v-model="page" :length="totalPage" :total-visible="6"></v-pagination>
+                      </div>
+                    </template>
+
+                    <template v-slot:top>
+                      <v-row class="pt-2 justify-space-between">
+                        <v-col md="2" sm="12">
+                          <v-select v-model="itemsPerPage" label="ItemsPerPage" :items="[10,25,50]" density="compact" variant="outlined" ></v-select>
+                        </v-col>
+                        <v-col md="4" sm="12">
+                          <v-text-field  :modelValue="search"
+                          @update:modelValue="updateTextField"
+                          v-model="search" append-inner-icon="mdi-magnify" label="Search" density="compact" variant="outlined"></v-text-field>
+                        </v-col>
+                      </v-row>
                     </template>
                 </v-data-table>
               </v-card-item>
@@ -82,11 +86,13 @@
 <script>
 
 import userRequest from '@/axios/request';
+import {debounce} from 'lodash';
 
 export default {
 data: () => ({
   page: 1,
   itemsPerPage: 5,
+  totalPage:1,
   search: '',
   headers: [
       { key: 'id', title: '#', align: ' d-none' },
@@ -96,6 +102,7 @@ data: () => ({
       { key: 'supervisor', title: 'Supervisor' },
       { key: 'actions', title: 'Actions', sortable: false },
   ],
+
   guardItems: [],
   items_supervisor: [],
   editing: false,
@@ -127,53 +134,123 @@ data: () => ({
 }),
 
 computed: {
-    nameRules() {
-      return [
-        (v) => !!v || 'Name is required',
-        (v) => v.length >= 3 || 'Name must be at least 3 characters',
-      ];
-    },
-    phoneRules() {
-      return [
-        (v) => !!v || 'Number is required',
-        (v) => /^(01){1}[3-9]{1}\d{8}$/.test(v) || 'Phone Number must be at least 11 characters',
-      ];
-    },
-    emailRules() {
-      return [
-        (v) => !!v || 'Email is required',
-        (v) => /^(([^<>()[\]\\.,;:\s@']+(\.[^<>()\\[\]\\.,;:\s@']+)*)|('.+'))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(v) || 'E-mail must be valid',
-      ];
-    },
-    passwordRules() {
-      return [
-        (v) => !!v || 'Password is required',
-        (v) => v.length >= 6 || 'Password must be at least 6 characters',
-      ];
-    },
-    confirmPasswordRules() {
-      return [
-        (v) => !!v || 'Confirm Password is required',
-        (v) => v === this.user.password || 'Passwords do not match',
-      ];
-    },
-    pageCount () {
-      return Math.ceil(this.guardItems.length / this.itemsPerPage)
-    },
+  nameRules() {
+    return [
+      (v) => !!v || 'Name is required',
+      (v) => v.length >= 3 || 'Name must be at least 3 characters',
+    ];
   },
+  phoneRules() {
+    return [
+      (v) => !!v || 'Number is required',
+      (v) => /^(01){1}[3-9]{1}\d{8}$/.test(v) || 'Phone Number must be at least 11 characters',
+    ];
+  },
+  emailRules() {
+    return [
+      (v) => !!v || 'Email is required',
+      (v) => /^(([^<>()[\]\\.,;:\s@']+(\.[^<>()\\[\]\\.,;:\s@']+)*)|('.+'))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(v) || 'E-mail must be valid',
+    ];
+  },
+  passwordRules() {
+    return [
+      (v) => !!v || 'Password is required',
+      (v) => v.length >= 6 || 'Password must be at least 6 characters',
+    ];
+  },
+  confirmPasswordRules() {
+    return [
+      (v) => !!v || 'Confirm Password is required',
+      (v) => v === this.user.password || 'Passwords do not match',
+    ];
+  },
+},
+
+//this one will populate new data set when user changes current page.
+watch: {
+  page(val){
+    this.retrieveUsers(val, this.itemsPerPage, this.search)
+  },
+  itemsPerPage(val){
+    this.retrieveUsers(this.page, val, this.search)
+  }
+},
 
 
 methods: {
+  // Get all Guard data...
+  retrieveUsers(page,itemPerPage,search) {
+    userRequest.get(`/guards?PageNumber=${page}&PageSize=${itemPerPage}&search=${search}`)
+      .then((response) => {
+        this.guardItems = response.data.data.data;
+        console.log("Get Guard:", response.data);
+        this.page= response.data.data.pageNumber;
+        this.itemsPerPage= response.data.data.pageSize;
+        this.totalPage= response.data.data.pageCount;
+      })
+      .catch((e) => {
+        console.log(e);
+      });
+  },
 
+  // Get Supervisor data...
+  retrieveSupervisor() {
+    userRequest.get('/supervisors')
+      .then((response) => {
+        this.items_supervisor = response.data.data.data;
+        console.log("Get Supervisor Details", response.data);
+      })
+      .catch((e) => {
+        console.log(e);
+      });
+  },
+
+  // Edit Guard data...
+  editItem (id) {
+    this.editing= true;
+    userRequest.get(`/guards/${id}`)
+      .then((response) => {
+        this.user = response.data.data;
+        console.log("Get details", response.data);
+        this.selectedSupervisor = response.data.data.supervisor;
+      })
+      .catch((e) => {
+        console.log(e);
+      });
+  },
+
+  // Update Guard data...
+  update(id) {
+    let userUpdate = {
+      name: this.user.name,
+      phoneNumber: this.user.phoneNumber,
+      email: this.user.email,
+      supervisorId: this.selectedSupervisor.id,
+      status: this.user.status,
+    };
+    this.editing = false;
+    userRequest.put(`/guards/${id}`, userUpdate)
+      .then(response => {
+        this.user = response.data.data;
+        console.log("Update Guard:",response.data);
+        this.selectedSupervisor= null;
+        this.refreshList();
+      })
+      .catch(e => {
+        console.log(e);
+      });
+  },
+
+  // Save Guard data...
   async save() {
     const { valid } = await this.$refs.form.validate()
     if (valid) {
-        if (this.user.id) {
-            // If ID is present, update data using the API
-            this.update(this.user.id);
-            this.submitted = true;
-            setTimeout(() => {this.reset();}, 2000);
-          } else {
+      if (this.user.id) {
+          // If ID is present, update data using the API
+          this.update(this.user.id);
+          this.submitted = true;
+          setTimeout(() => {this.reset();}, 2000);
+        } else {
           let userCreate = {
             name: this.user.name,
             phoneNumber: this.user.phoneNumber,
@@ -183,81 +260,41 @@ methods: {
           };
 
           userRequest.post('/guards', userCreate)
-              .then((response) => {
-                this.user.id = response.data.id;
-                console.log(response.data);
-                this.submitted = true;
-                setTimeout(() => {
-                  this.reset();
-                  this.retrieveUsers();
-                }, 2000);
-                this.selectedSupervisor= null;
-              })
-              .catch((e) => {
-                console.log(e);
-              });
-          }
-      }
+            .then((response) => {
+              this.user.id = response.data.id;
+              console.log(response.data);
+              this.submitted = true;
+              setTimeout(() => {
+                this.reset();
+                this.retrieveUsers(this.page,this.itemsPerPage,this.search);
+              }, 2000);
+              this.selectedSupervisor= null;
+            })
+            .catch((e) => {
+              console.log(e);
+            });
+        }
+    }
   },
 
-  update(id) {
-      let userUpdate = {
-        name: this.user.name,
-        phoneNumber: this.user.phoneNumber,
-        email: this.user.email,
-        supervisorId: this.selectedSupervisor.id,
-        status: this.user.status,
-      };
-      this.editing = false;
-      userRequest.put(`/guards/${id}`, userUpdate)
-        .then(response => {
-          this.user = response.data.data;
-          console.log(response.data);
-          this.selectedSupervisor= null;
-          this.refreshList();
-        })
-        .catch(e => {
-          console.log(e);
-        });
+  // Search ...
+  updateTextField: debounce(function debounceRead(e) {
+    this.retrieveUsers(this.page,this.itemsPerPage, e)
+  }, 1000),
+
+  // Pagination ......
+  pageUpdateFunction(newPageNumber) {
+    console.log('Page Update',newPageNumber);
   },
 
-  retrieveUsers() {
-      userRequest.get('/guards')
-        .then((response) => {
-          this.guardItems = response.data.data.data;
-          console.log("get", response.data);
-        })
-        .catch((e) => {
-          console.log(e);
-        });
+  handlePageChange (page) {
+    console.log("HandlePage", page)
+    this.retrieveUsers(page, this.itemsPerPage, this.search)
   },
 
-  retrieveSupervisor() {
-      userRequest.get('/supervisors')
-        .then((response) => {
-          this.items_supervisor = response.data.data.data;
-          console.log("get Details", response.data);
-        })
-        .catch((e) => {
-          console.log(e);
-        });
-  },
-
-  editItem (id) {
-    this.editing= true;
-    userRequest.get(`/guards/${id}`)
-        .then((response) => {
-          this.user = response.data.data;
-          console.log("get details", response.data);
-          this.selectedSupervisor = response.data.data.supervisor;
-        })
-        .catch((e) => {
-          console.log(e);
-        });
-  },
-
+  // Refresh & Reset the List...
   refreshList() {
-    this.retrieveUsers();
+    this.retrieveUsers(this.page,this.itemsPerPage, this.search);
     this.retrieveSupervisor();
   },
 
@@ -268,10 +305,10 @@ methods: {
     this.$refs.form.reset();
   },
 
-},
+}, //Methods end.....
 
 mounted() {
-  this.retrieveUsers();
+  this.retrieveUsers(this.page,this.itemsPerPage, this.search);
   this.retrieveSupervisor();
 },
 

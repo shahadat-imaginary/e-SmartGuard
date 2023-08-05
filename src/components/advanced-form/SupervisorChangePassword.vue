@@ -7,29 +7,35 @@
                 <v-toolbar-title>Supervisor List</v-toolbar-title>
               </v-toolbar>
 
-              <v-card-title>
-                <v-sheet width="260px" class="float-end">
-                  <v-text-field
-                    v-model="search"
-                    append-inner-icon="mdi-magnify"
-                    label="Search"
-                    single-line
-                    hide-details
-                    density="compact"
-                    variant="solo"
-                  ></v-text-field>
-                </v-sheet>
-              </v-card-title>
-
               <v-card-item>
                 <v-data-table
-                  v-model:page="page"
+                  :page="page"
                   :headers="headers"
                   :items="userItems"
                   :items-per-page="itemsPerPage"
-                  :search="search">
+                  :search="search"
+                  hide-default-footer>
                     <template v-slot:[`item.actions`]="{ item }">
                       <v-icon size="small" class="me-2" @click="editItem(item.columns.id)">mdi-square-edit-outline</v-icon>
+                    </template>
+
+                    <template v-slot:bottom>
+                      <div class="text-center pt-2">
+                        <v-pagination v-model="page" :length="totalPage" :total-visible="6"></v-pagination>
+                      </div>
+                    </template>
+
+                    <template v-slot:top>
+                      <v-row class="pt-2 justify-space-between">
+                        <v-col md="2" sm="12">
+                          <v-select v-model="itemsPerPage" label="ItemsPerPage" :items="[10,25,50]" density="compact" variant="outlined" ></v-select>
+                        </v-col>
+                        <v-col md="4" sm="12">
+                          <v-text-field  :modelValue="search"
+                          @update:modelValue="updateTextField"
+                          v-model="search" append-inner-icon="mdi-magnify" label="Search" density="compact" variant="outlined"></v-text-field>
+                        </v-col>
+                      </v-row>
                     </template>
                 </v-data-table>
               </v-card-item>
@@ -70,48 +76,49 @@
 
 <script>
 import userRequest from '@/axios/request';
+import {debounce} from 'lodash'
 
 export default {
-data: () => ({
-  page: 1,
-  itemsPerPage: 5,
-  search: '',
+  data: () => ({
+    page: 1,
+    itemsPerPage: 10,
+    totalPage:1,
+    search: '',
 
-  headers: [
-      { key: 'id', title: '#', align: ' d-none' },
-      { key: 'name', title: 'Name' },
-      { key: 'phoneNumber', title: 'Mobile No.', sortable: false },
-      { key: 'email', title: 'Email' },
-      { key: 'status', title: 'Status' },
-      { key: 'actions', title: 'Actions', sortable: false },
-  ],
+    headers: [
+        { key: 'id', title: '#', align: ' d-none' },
+        { key: 'name', title: 'Name' },
+        { key: 'phoneNumber', title: 'Mobile No.', sortable: false },
+        { key: 'email', title: 'Email' },
+        { key: 'status', title: 'Status' },
+        { key: 'actions', title: 'Actions', sortable: false },
+    ],
 
-  userItems: [],
-  editing: false,
-  status:['Active', 'Inactive'],
+    userItems: [],
+    status:['Active', 'Inactive'],
 
-  user: {
-    id: null,
-    name: '',
-    phoneNumber: null,
-    email: '',
-    password: '',
-    confirmPassword: '',
-    status: '',
-  },
-  defaultuser: {
-    id: null,
-    name: '',
-    phoneNumber: null,
-    email: '',
-    password: '',
-    confirmPassword: '',
-    status: '',
-  },
-  submitted: false,
-}),
+    user: {
+      id: null,
+      name: '',
+      phoneNumber: null,
+      email: '',
+      password: '',
+      confirmPassword: '',
+      status: '',
+    },
+    defaultuser: {
+      id: null,
+      name: '',
+      phoneNumber: null,
+      email: '',
+      password: '',
+      confirmPassword: '',
+      status: '',
+    },
+    submitted: false,
+  }),
 
-computed: {
+  computed: {
     passwordRules() {
       return [
         (v) => !!v || 'Password is required',
@@ -124,94 +131,121 @@ computed: {
         (v) => v === this.user.password || 'Passwords do not match',
       ];
     },
+  },
 
-    pageCount () {
-      return Math.ceil(this.userItems.length / this.itemsPerPage)
+  //this one will populate new data set when user changes current page.
+  watch: {
+    page(val){
+      this.retrieveUsers(val, this.itemsPerPage, this.search);
     },
+    itemsPerPage(val){
+      this.retrieveUsers(this.page, val, this.search);
+    }
   },
 
-methods: {
-
-  async save() {
-    const { valid } = await this.$refs.form.validate();
-    if (valid) {
-        if (this.user.id) {
-          // If ID is present, update data using the API
-          this.update(this.user.id);
-          this.submitted = true;
-          setTimeout(() => {
-            this.reset();
-            this.refreshList();
-          }, 2000);
-
-        } else {
-          this.retrieveUsers();
-        }
-      }
-  },
-
-  update(id) {
-    this.$refs.form.validate();
-    let userUpdate = {
-      name: this.user.name,
-      phoneNumber: this.user.phoneNumber,
-      position: this.user.position,
-      email: this.user.email,
-      status: this.user.status,
-      password: this.user.password,
-    };
-    this.editing = false;
-    userRequest.put(`/supervisors/${id}`, userUpdate)
-      .then(response => {
-        this.user = response.data.data;
-        console.log(response.data);
-        this.retrieveUsers();
-      })
-      .catch(e => {
-        console.log(e);
-      });
-  },
-
-  retrieveUsers() {
-      userRequest.get('/supervisors')
+  methods: {
+    // Get all Supervisor data.
+    retrieveUsers(page,itemPerPage,search) {
+      userRequest.get(`/supervisors?PageNumber=${page}&PageSize=${itemPerPage}&search=${search}`)
         .then((response) => {
           this.userItems = response.data.data.data;
-          console.log("get", response.data);
+          console.log("Get Supervisor:", response.data);
+          this.page= response.data.data.pageNumber;
+          this.itemsPerPage= response.data.data.pageSize;
+          this.totalPage= response.data.data.pageCount;
         })
         .catch((e) => {
           console.log(e);
         });
-  },
+    },
 
-  refreshList() {
-    this.retrieveUsers();
-  },
+    // Edit Supervisor data...
+    editItem (id) {
+      this.editing= true;
+      userRequest.get(`/supervisors/${id}`)
+          .then((response) => {
+            this.user = response.data.data;
+            console.log("Get details", response.data);
+          })
+          .catch((e) => {
+            console.log(e);
+          });
+    },
 
-  reset () {
-    this.user = this.defaultuser;
-    this.editing = false;
-    this.submitted= false;
-    this.$refs.form.reset();
-  },
-
-  editItem (id) {
-    this.editing= true;
-    userRequest.get(`/supervisors/${id}`)
-        .then((response) => {
+    // Update Supervisor data...
+    update(id) {
+      this.$refs.form.validate();
+      let userUpdate = {
+        name: this.user.name,
+        phoneNumber: this.user.phoneNumber,
+        position: this.user.position,
+        email: this.user.email,
+        status: this.user.status,
+        password: this.user.password,
+      };
+      this.editing = false;
+      userRequest.put(`/supervisors/${id}`, userUpdate)
+        .then(response => {
           this.user = response.data.data;
-          console.log("get details", response.data);
+          console.log("Update Supervisor:", response.data);
+          this.retrieveUsers();
         })
-        .catch((e) => {
+        .catch(e => {
           console.log(e);
         });
-  },
+    },
 
-  },
+    // Save Supervisor data...
+    async save() {
+      const { valid } = await this.$refs.form.validate();
+      if (valid) {
+          if (this.user.id) {
+            // If ID is present, update data using the API
+            this.update(this.user.id);
+            this.submitted = true;
+            setTimeout(() => {
+              this.reset();
+              this.refreshList();
+            }, 2000);
+
+          } else {
+            this.retrieveUsers(this.page,this.itemsPerPage,this.search);
+          }
+        }
+    },
+
+    // Search ...
+    updateTextField: debounce(function debounceRead(e) {
+      this.retrieveUsers(this.page,this.itemsPerPage, e)
+    }, 1000),
+
+    // Pagination ......
+    pageUpdateFunction(newPageNumber) {
+      console.log('Page Update',newPageNumber);
+    },
+
+    handlePageChange (page) {
+      console.log("HandlePage", page)
+      this.retrieveUsers(page, this.itemsPerPage, this.search)
+    },
+
+    // Refresh & Reset the List...
+    refreshList() {
+      this.retrieveUsers(this.page,this.itemsPerPage, this.search);
+    },
+
+    reset () {
+      this.user = this.defaultuser;
+      this.editing = false;
+      this.submitted= false;
+      this.$refs.form.reset();
+    },
+
+  }, //Methods end.....
 
   mounted() {
-    this.retrieveUsers();
+    this.retrieveUsers(this.page,this.itemsPerPage,this.search);
   },
-
 }
 </script>
 
