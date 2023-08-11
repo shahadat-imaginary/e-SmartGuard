@@ -218,9 +218,9 @@ export default {
           this.patrol = response.data.data;
           console.log("get details", response.data);
           this.startdate = moment(response.data.data.start).format("YYYY-MM-DD")
-          this.startTime = moment(response.data.data.start).format("HH:MM")
+          this.startTime = moment(response.data.data.start).format("hh:mm")
           this.enddate = moment(response.data.data.end).format("YYYY-MM-DD")
-          this.endTime = moment(response.data.data.end).format("HH:MM")
+          this.endTime = moment(response.data.data.end).format("hh:mm")
           this.selectedGuard = response.data.data.guard;
           this.selectedRoute = response.data.data.route;
         })
@@ -244,9 +244,9 @@ export default {
           console.log(response.data);
 
           this.startdate = moment(response.data.data.start).format("YYYY-MM-DD")
-          this.startTime = moment(response.data.data.start).format("HH:MM")
+          this.startTime = moment(response.data.data.start).format("hh:mm")
           this.enddate = moment(response.data.data.end).format("YYYY-MM-DD")
-          this.endTime = moment(response.data.data.end).format("HH:MM")
+          this.endTime = moment(response.data.data.end).format("hh:mm")
           this.selectedGuard = null;
           this.selectedRoute = null;
           this.refreshList();
@@ -320,7 +320,7 @@ export default {
     },
 
     formatDateTime(value) {
-      return moment(value).format("DD/MM/YYYY, HH:MM:SS A")
+      return moment(value).format("DD/MM/YYYY, hh:mm A")
     },
 
   }, //methods end.....
