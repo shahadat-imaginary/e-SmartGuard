@@ -3,13 +3,9 @@
       <NavigationDrawer />
       <v-main>
         <Breadcrumbs />
-        <v-container>
-          <v-row>
-            <v-col md="12" sm="12"><PatrolReportDataTable /></v-col>
-          </v-row>
-        </v-container>
-        <Footerbar />
+        <PatrolReportDataTable />
       </v-main>
+      <Footerbar />
   </v-app>
 </template>
 

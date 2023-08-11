@@ -3,7 +3,7 @@
       <NavigationDrawer />
       <v-main>
         <Breadcrumbs />
-        <box />
+        <Box />
         <v-row>
             <v-col md="6" sm="12">
               <MainCampus />
@@ -13,11 +13,11 @@
             </v-col>
           </v-row>
         <Datatable />
-        <Footerbar />
       </v-main>
+      <Footerbar />
   </v-app>
   </template>
-  
+
   <script setup>
     import NavigationDrawer from '@/components/NavigationDrawer.vue'
     import Breadcrumbs from '@/components/Breadcrumbs.vue';
