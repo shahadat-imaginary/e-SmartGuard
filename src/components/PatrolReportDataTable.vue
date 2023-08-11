@@ -22,11 +22,11 @@
               </template>
 
               <template v-slot:[`item.startedAt`]="{ item }">
-                <span>{{ new Date(item.columns.startedAt).toLocaleTimeString() }}</span>
+                <span>{{ formatTime(new Date(item.columns.startedAt).toLocaleTimeString()) }}</span>
               </template>
 
               <template v-slot:[`item.completedAt`]="{ item }">
-                <span>{{ item.columns.completedAt == null ? "" : new Date(item.columns.completedAt).toLocaleTimeString()
+                <span>{{ item.columns.completedAt == null ? "" : formatTime(new Date(item.columns.completedAt).toLocaleTimeString())
                 }}</span>
               </template>
               <template v-slot:bottom>
@@ -133,6 +133,10 @@ export default {
 
     formatDate(value) {
       return moment(value).format("DD/MM/YYYY")
+    },
+
+    formatTime(value) {
+      return moment(value).format("hh:mm A")
     },
     // Search ...
     updateTextField: debounce(function debounceRead(e) {
