@@ -22,11 +22,11 @@
               </template>
 
               <template v-slot:[`item.startedAt`]="{ item }">
-                <span>{{ formatTime(new Date(item.columns.startedAt).toLocaleTimeString()) }}</span>
+                <span>{{ new Date(item.columns.startedAt).toLocaleTimeString() }}</span>
               </template>
 
               <template v-slot:[`item.completedAt`]="{ item }">
-                <span>{{ item.columns.completedAt == null ? "" : formatTime(new Date(item.columns.completedAt).toLocaleTimeString())
+                <span>{{ item.columns.completedAt == null ? "" : new Date(item.columns.completedAt).toLocaleTimeString()
                 }}</span>
               </template>
               <template v-slot:bottom>
@@ -47,7 +47,7 @@
                     <v-text-field :modelValue="search" @update:modelValue="updateTextField" v-model="search"
                       append-inner-icon="mdi-magnify" label="Search" density="compact" variant="outlined"></v-text-field>
                     <v-select v-model="selectedGuard" label="Guard Name *" item-value="id" return-object=""
-                      item-title="name" :items="this.items_guard" density="compact" variant="outlined"></v-select>
+                      item-title="name" :items="this.items_guard" density="compact" variant="outlined" @update:modelValue="updateSelectGuard"></v-select>
                   </v-col>
                 </v-row>
               </template>
@@ -87,6 +87,7 @@ export default {
         { key: 'route', title: 'Route' },
         { key: 'startedAt', title: 'Start' },
         { key: 'completedAt', title: 'End' },
+        { key: 'status', title: 'Status' },
       ],
       items: [],
     }
@@ -135,9 +136,15 @@ export default {
       return moment(value).format("DD/MM/YYYY")
     },
 
-    formatTime(value) {
-      return moment(value).format("hh:mm A")
-    },
+    // formatTime(value) {
+    //   return moment(value).format("hh:mm A")
+    // },
+
+    // Guard name select search
+    updateSelectGuard: debounce(function debounceRead(e) {
+      this.retrieveAttendances(this.page, this.itemPerPage, e)
+    }, 1000),
+
     // Search ...
     updateTextField: debounce(function debounceRead(e) {
       this.retrieveAttendances(this.page, this.itemsPerPage, e)

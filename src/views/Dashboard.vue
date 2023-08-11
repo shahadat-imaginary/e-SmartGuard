@@ -12,7 +12,7 @@
               <TechCampus />
             </v-col>
           </v-row>
-        <Datatable />
+          <PatrolReportDataTable />
       </v-main>
       <Footerbar />
   </v-app>
@@ -21,7 +21,7 @@
   <script setup>
     import NavigationDrawer from '@/components/NavigationDrawer.vue'
     import Breadcrumbs from '@/components/Breadcrumbs.vue';
-    import Datatable from '@/components/DataTable.vue'
+    import PatrolReportDataTable from '@/components/PatrolReportDataTable.vue'
     import Box from '@/components/Box.vue'
     import Footerbar from '@/components/Footer.vue';
     import MainCampus from '@/components/MainCampus.vue';

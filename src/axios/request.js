@@ -27,6 +27,7 @@ const request = () => {
   axiosInstance.interceptors.response.use(
     (response) => {
       if (response.data && response.data.success) {
+        // Handle success if needed
       }
 
       return response;
@@ -40,7 +41,7 @@ const request = () => {
       const originalRequest = error.config;
       if (error.response && error.response.status === 403) {
         const token = JSON.parse(localStorage.getItem("token"));
-        // const refreshToken = USER_INFO.refresh;
+        const refreshToken = token.refresh;
 
         return axios
           .post(baseURL + refreshURL, {

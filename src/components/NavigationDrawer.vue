@@ -5,7 +5,7 @@
         </div>
 
           <v-list-item
-            prepend-avatar="https://randomuser.me/api/portraits/men/85.jpg"
+            prepend-avatar="../assets/e-smartguard.jpg"
             nav to="/user-profile" >{{ user.name }}
           </v-list-item>
 
