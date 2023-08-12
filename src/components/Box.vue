@@ -92,7 +92,7 @@
               <v-card-title class="card-title">
                 SOS Report Today
               </v-card-title>
-              <v-card-subtitle>1</v-card-subtitle>
+              <v-card-subtitle>{{ dashboard.reports }}</v-card-subtitle>
             </div>
           </div>
         </v-card>
@@ -139,8 +139,9 @@ export default {
       checkpoints: null,
       routes: '',
       patrols: '',
+      reports: '',
       duties: '',
-      late: '',
+      late: ''
     },
   }),
 
