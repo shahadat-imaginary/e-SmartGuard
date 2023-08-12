@@ -39,9 +39,8 @@
                   <v-col md="2" sm="12">
                     <v-select v-model="itemsPerPage" label="ItemsPerPage" :items="[10, 25, 50]" density="compact"
                       variant="outlined"></v-select>
-                    <v-btn color="blue-darken-4" variant="outlined" class="mr-1">CSV</v-btn>
-                    <v-btn color="blue-darken-4" variant="outlined" class="mr-1">PDF</v-btn>
-                    <v-btn color="blue-darken-4" variant="outlined">Print</v-btn>
+                    <v-btn color="blue-darken-4" variant="outlined" class="mr-1" @click="downloadExcel">CSV</v-btn>
+                    <v-btn color="blue-darken-4" variant="outlined" class="mr-1" @click="downloadPdf">PDF</v-btn>
                   </v-col>
                   <v-col md="3" sm="12">
                     <v-text-field :modelValue="search" @update:modelValue="updateTextField" v-model="search"
@@ -65,6 +64,7 @@ import userRequest from '@/axios/request';
 import { inject } from 'vue';
 import moment from "moment";
 import { debounce } from 'lodash';
+import request from '@/axios/request';
 
 export default {
   setup() {
@@ -118,7 +118,27 @@ export default {
           console.log(e);
         });
     },
+    
+    downloadExcel() {
+      window.open('http://shahadat001-001-site1.ctempurl.com/api/patrols/download-excel', '_blank', 'noreferrer');
+      // userRequest.get('/patrols/download-excel')
+      //   .then((response) => {
+          
+      //   })
+      //   .catch((e) => {
+      //     console.log(e);
+      //   });
+    },
 
+    downloadPdf() {
+      userRequest.get('/patrols/download-pdf')
+        .then((response) => {
+          console.log("Get All", response.data.data.data);
+        })
+        .catch((e) => {
+          console.log(e);
+        });
+    },
 
     // Get All Guards data...
     retrieveGuard() {
