@@ -50,9 +50,32 @@
                 <v-form ref="form" @submit.prevent="save" v-model="valid" lazy-validation>
                   <v-text-field v-model="route.name" label="Route Name *" variant="outlined"
                     :rules="[v => !!v || 'Route Name is required']" required></v-text-field>
-                  <v-select v-model="selectedCheckpoint" label="Check Point *" item-value="id" return-object=""
-                    item-title="name" :items="this.item_checkpoint" multiple variant="outlined"
-                    :rules="[v => !!v || 'Item is required']" required></v-select>
+                  <div>
+                    <v-row>
+
+                      <v-col md="10" v-for="(data, index) in inputFields" :key="index">
+                        <v-row>
+
+                          <v-col md="7">
+                            <v-select v-model="data.selectedCheckpoint" label="Check Point *" item-value="id"
+                              return-object item-title="name" :items="this.item_checkpoint" variant="outlined"
+                              :rules="[v => !!v || 'Item is required']" required></v-select>
+                          </v-col>
+                          <v-col md="3">
+                            <v-text-field v-model="data.expectedTime" label="ExpectedTime" :rules="timeRules"
+                              variant="outlined"></v-text-field>
+                          </v-col>
+                          <v-col md="2">
+                            <v-btn v-if="inputFields.length > 1" @click="removeInputFields(index)" color="error" outlined
+                              icon="mdi-delete-circle"></v-btn>
+                          </v-col>
+                        </v-row>
+                      </v-col>
+                      <v-col md="2">
+                        <v-btn @click="addInputField" color="success" icon="mdi-plus-circle" outlined></v-btn>
+                      </v-col>
+                    </v-row>
+                  </div>
 
                   <div class="d-flex">
                     <v-btn color="success" class="mt-4 mr-2" type="submit">Save</v-btn>
@@ -105,9 +128,24 @@ export default {
       name: '',
       routeCheckpoints: null,
     },
+    inputFields: [
+      {
+        selectedCheckpoint: null,
+        expectedTime: null,
+      },
+    ],
+
   }),
 
   computed: {
+    timeRules() {
+      return [
+        (v) => !!v || 'Time is required',
+        (v) => /^\d+$/.test(v) || 'The value must be number',
+        (v) => v > 0 || 'The value must be greater than zero',
+        // (v) => v.length <= 3 || 'Number must be less then 4 characters',
+      ];
+    },
   },
 
   //this one will populate new data set when user changes current page.
@@ -121,18 +159,91 @@ export default {
   },
 
   methods: {
-    updateTextField: debounce(function debounceRead(e) {
-      this.retrieveRoutes(this.page, this.itemsPerPage, e)
-    }, 1000),
+    // Get All Route Items...
+    retrieveRoutes(page, itemPerPage, search) {
+      userRequest.get(`/routes?PageNumber=${page}&PageSize=${itemPerPage}&search=${search}`)
+        .then((response) => {
+          this.routeItems = response.data.data.data;
+          console.log("get", response.data);
+          this.page = response.data.data.pageNumber;
+          this.itemsPerPage = response.data.data.pageSize;
+          this.totalPage = response.data.data.pageCount;
+        })
+        .catch((e) => {
+          console.log(e);
+        });
+    },
 
-    pageUpdateFunction(newPageNumber) {
-      console.log('Page Update', newPageNumber);
-      // handle other axios request here and update varibles
+    // Get All CheckPoint Items...
+    retrieveCheckpoints() {
+      userRequest.get('/checkpoints')
+        .then((response) => {
+          this.item_checkpoint = response.data.data.data;
+          console.log("get Details", response.data);
+        })
+        .catch((e) => {
+          console.log(e);
+        });
     },
-    handlePageChange(page) {
-      console.log("HandlePage", page)
-      this.retrieveRoutes(page, this.itemsPerPage, this.search)
+
+    // Add selectedCheckpoint & expectedTime Input Field...
+    addInputField() {
+      this.inputFields.push({
+        selectedCheckpoint: [],
+        expectedTime: null,
+      });
     },
+
+    // Remove selectedCheckpoint & expectedTime Input Field...
+    removeInputFields(index) {
+      this.inputFields.splice(index, 1);
+    },
+
+    // Edit Route Items...
+    editItem(id) {
+      userRequest.get(`/routes/${id}`)
+        .then((response) => {
+          this.route = response.data.data;
+          console.log("get details route edit", response.data.data.routeCheckpoints);
+          // let checkedArr = []
+          const updatedData = response.data.data.routeCheckpoints.map((o) => {
+            let obj = { selectedCheckpoint: o.checkpoint, expectedTime: o.expectedTime }
+            return obj
+          })
+          this.inputFields = updatedData
+
+        })
+        .catch((e) => {
+          console.log(e);
+        });
+    },
+
+    // Update Route Items...
+    update(id) {
+      let routeCheckpointsArr = this.inputFields.map((o) => {
+        let obj = {
+          checkpointId: o.selectedCheckpoint.id,
+          ExpectedTime: o.expectedTime,
+        }
+        return obj
+      })
+      let routeUpdate = {
+        name: this.route.name,
+        routeCheckpoints: routeCheckpointsArr,
+      };
+      userRequest.put(`/routes/${id}`, routeUpdate)
+        .then(response => {
+          this.route = response.data.data;
+          console.log(response.data);
+          this.selectedCheckpoint = null;
+          this.refreshList();
+        })
+        .catch(e => {
+          console.log(e);
+        });
+    },
+
+    // Save Route Items...
     async save() {
       const { valid } = await this.$refs.form.validate();
       if (valid) {
@@ -140,11 +251,20 @@ export default {
           // If ID is present, update data using the API
           this.update(this.route.id);
           this.submitted = true;
-          setTimeout(() => { this.reset(); }, 2000);
+          setTimeout(() => { this.reset(); this.refreshList(); }, 2000);
         } else {
+
+          let routeCheckpointsArr = this.inputFields.map((o) => {
+            let obj = {
+              checkpointId: o.selectedCheckpoint.id,
+              ExpectedTime: o.expectedTime
+            }
+            return obj
+          })
+
           let routeCreate = {
             name: this.route.name,
-            routeCheckpoints: this.selectedCheckpoint.id,
+            routeCheckpoints: routeCheckpointsArr
           };
 
           userRequest.post('/routes', routeCreate)
@@ -165,67 +285,19 @@ export default {
       }
     },
 
-    update(id) {
-      let routeUpdate = {
-        name: this.route.name,
-        routeCheckpoints: this.selectedCheckpoint.id,
-      };
-      userRequest.put(`/routes/${id}`, routeUpdate)
-        .then(response => {
-          this.route = response.data.data;
-          console.log(response.data);
-          this.selectedCheckpoint = null;
-          this.refreshList();
-        })
-        .catch(e => {
-          console.log(e);
-        });
+    // Search ....
+    updateTextField: debounce(function debounceRead(e) {
+      this.retrieveRoutes(this.page, this.itemsPerPage, e)
+    }, 1000),
+
+    // Pagination ......
+    pageUpdateFunction(newPageNumber) {
+      console.log('Page Update', newPageNumber);
+      // handle other axios request here and update varibles
     },
-
-    retrieveRoutes(page, itemPerPage, search) {
-      userRequest.get(`/routes?PageNumber=${page}&PageSize=${itemPerPage}&search=${search}`)
-        .then((response) => {
-          this.routeItems = response.data.data.data;
-          console.log("get", response.data);
-          this.page = response.data.data.pageNumber;
-          this.itemsPerPage = response.data.data.pageSize;
-          this.totalPage = response.data.data.pageCount;
-        })
-        .catch((e) => {
-          console.log(e);
-        });
-    },
-
-    retrieveCheckpoints() {
-      userRequest.get('/checkpoints')
-        .then((response) => {
-          this.item_checkpoint = response.data.data.data;
-          console.log("get Details", response.data);
-        })
-        .catch((e) => {
-          console.log(e);
-        });
-    },
-
-    editItem(id) {
-      userRequest.get(`/routes/${id}`)
-        .then((response) => {
-          this.route = response.data.data;
-          console.log("get details route edit", response.data.data.routeCheckpoints);
-          let checkedArr = []
-          const updatedData = response.data.data.routeCheckpoints.map((o) => {
-            let obj = { ...o }
-            checkedArr.push(obj.checkpoint)
-
-          })
-          console.log("CHCKED ARR", checkedArr)
-          this.selectedCheckpoint = checkedArr
-          // this.selectedCheckpoint = response.data.data.routeCheckpoints;
-
-        })
-        .catch((e) => {
-          console.log(e);
-        });
+    handlePageChange(page) {
+      console.log("HandlePage", page)
+      this.retrieveRoutes(page, this.itemsPerPage, this.search)
     },
 
     checkpointData(arr) {
@@ -237,6 +309,7 @@ export default {
       return checkedArr.join();
     },
 
+    // Refresh & Reset the List...
     refreshList() {
       this.retrieveRoutes(this.page, this.itemsPerPage, this.search);
       this.retrieveCheckpoints();

@@ -45,8 +45,9 @@
                   <v-col md="3" sm="12">
                     <v-text-field :modelValue="search" @update:modelValue="updateTextField" v-model="search"
                       append-inner-icon="mdi-magnify" label="Search" density="compact" variant="outlined"></v-text-field>
-                    <v-select v-model="selectedGuard" label="Guard Name *" item-value="id" return-object=""
-                      item-title="name" :items="this.items_guard" density="compact" variant="outlined" @update:modelValue="updateSelectGuard"></v-select>
+                    <v-select v-model="selectedGuard" label="Guard Name *" item-value="id" return-object item-title="name"
+                      :items="items_guard" density="compact" variant="outlined"
+                      @update:modelValue="updateSelectGuard"></v-select>
                   </v-col>
                 </v-row>
               </template>
@@ -64,7 +65,6 @@ import userRequest from '@/axios/request';
 import { inject } from 'vue';
 import moment from "moment";
 import { debounce } from 'lodash';
-import request from '@/axios/request';
 
 export default {
   setup() {
@@ -78,9 +78,9 @@ export default {
       itemsPerPage: 10,
       totalPage: 1,
       search: '',
-      selectedGuard: [],
+      selectedGuard: { name: "" },
       guard_select: null,
-
+      items_guard: [],
       headers: [
         { key: 'start', title: 'Date' },
         { key: 'guard', title: 'Guard' },
@@ -96,10 +96,10 @@ export default {
   //this one will populate new data set when user changes current page.
   watch: {
     page(val) {
-      this.retrieveAttendances(val, this.itemsPerPage, this.search, this.guard)
+      this.retrieveAttendances(val, this.itemsPerPage, this.search, this.selectedGuard.name)
     },
     itemsPerPage(val) {
-      this.retrieveAttendances(this.page, val, this.search, this.guard)
+      this.retrieveAttendances(this.page, val, this.search, this.selectedGuard.name)
     }
   },
 
@@ -118,12 +118,25 @@ export default {
           console.log(e);
         });
     },
-    
+
+
+    // Get All Guards data...
+    retrieveGuard() {
+      userRequest.get('/guards')
+        .then((response) => {
+          this.items_guard = response.data.data.data;
+          console.log("get Details", response.data);
+        })
+        .catch((e) => {
+          console.log(e);
+        });
+    },
+
     downloadExcel() {
       window.open('http://shahadat001-001-site1.ctempurl.com/api/patrols/download-excel', '_blank', 'noreferrer');
       // userRequest.get('/patrols/download-excel')
       //   .then((response) => {
-          
+
       //   })
       //   .catch((e) => {
       //     console.log(e);
@@ -140,34 +153,18 @@ export default {
         });
     },
 
-    // Get All Guards data...
-    retrieveGuard() {
-      userRequest.get('/guards')
-        .then((response) => {
-          this.items_guard = response.data.data.data;
-          console.log("get Details", response.data);
-        })
-        .catch((e) => {
-          console.log(e);
-        });
-    },
-
     formatDate(value) {
       return moment(value).format("DD/MM/YYYY")
     },
 
-    // formatTime(value) {
-    //   return moment(value).format("hh:mm A")
-    // },
-
     // Guard name select search
     updateSelectGuard: debounce(function debounceRead(e) {
-      this.retrieveAttendances(this.page, this.itemPerPage, e)
+      this.retrieveAttendances(this.page, this.itemsPerPage, this.search, e.name)
     }, 1000),
 
     // Search ...
     updateTextField: debounce(function debounceRead(e) {
-      this.retrieveAttendances(this.page, this.itemsPerPage, e)
+      this.retrieveAttendances(this.page, this.itemsPerPage, e, this.selectedGuard.name)
     }, 1000),
 
     // Pagination ......
@@ -177,17 +174,17 @@ export default {
 
     handlePageChange(page) {
       console.log("HandlePage", page)
-      this.retrieveAttendances(page, this.itemsPerPage, this.search, this.guard)
+      this.retrieveAttendances(page, this.itemsPerPage, this.search, this.selectedGuard.name)
     },
   },
   // Refresh the List...
   refreshList() {
-    this.retrieveAttendances(this.page, this.itemsPerPage, this.search, this.guard);
+    this.retrieveAttendances(this.page, this.itemsPerPage, this.search, this.selectedGuard.name);
     this.retrieveGuard();
   },
 
   mounted() {
-    this.retrieveAttendances(this.page, this.itemsPerPage, this.search, this.guard);
+    this.retrieveAttendances(this.page, this.itemsPerPage, this.search, this.selectedGuard.name);
     this.retrieveGuard();
   },
 }
