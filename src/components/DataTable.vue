@@ -22,7 +22,23 @@
             :headers="headers"
             :items="desserts"
             :search="search"
-          ></v-data-table>
+          >
+          <template v-slot:[`item.actions`]="{ item }">
+            <v-icon
+              size="small"
+              class="me-2"
+              @click="editItem(item.raw)"
+            >
+              mdi-pencil
+            </v-icon>
+            <v-icon
+              size="small"
+              @click="deleteItem(item.raw)"
+            >
+              mdi-delete
+            </v-icon>
+          </template>
+        </v-data-table>
         </v-col>
       </v-row>
     </v-card>
@@ -37,96 +53,93 @@
         headers: [
           {
             align: 'start',
-            key: 'name',
+            key: 'id',
             sortable: false,
-            title: 'Dessert (100g serving)',
+            title: '#',
           },
-          { key: 'calories', title: 'Calories' },
-          { key: 'fat', title: 'Fat (g)' },
-          { key: 'carbs', title: 'Carbs (g)' },
-          { key: 'protein', title: 'Protein (g)' },
-          { key: 'iron', title: 'Iron (%)' },
+          { key: 'userName', title: 'User Name' },
+          { key: 'userId', title: 'User ID' },
+          { key: 'mobileNo', title: 'Mobile No.', sortable: false },
+          { key: 'status', title: 'Status' },
+          { key: 'actions', title: 'Actions', sortable: false },
         ],
         desserts: [
           {
-            name: 'Frozen Yogurt',
-            calories: 159,
-            fat: 6.0,
-            carbs: 24,
-            protein: 4.0,
-            iron: 1,
+            id: 1,
+            userName: 'Test',
+            userId: 11,
+            mobileNo: 123456789,
+            status: 'PASIVE',
           },
           {
-            name: 'Ice cream sandwich',
-            calories: 237,
-            fat: 9.0,
-            carbs: 37,
-            protein: 4.3,
-            iron: 1,
+            id: 2,
+            userName: 'Ice cream sandwich',
+            userId: 12,
+            mobileNo: 123456789,
+            status: 'ACTIVE',
           },
           {
-            name: 'Eclair',
-            calories: 262,
-            fat: 16.0,
-            carbs: 23,
-            protein: 6.0,
-            iron: 7,
+            id: 3,
+            userName: 'Eclair',
+            userId: 13,
+            mobileNo: 123456789,
+            status: 'PASIVE',
           },
           {
-            name: 'Cupcake',
-            calories: 305,
-            fat: 3.7,
-            carbs: 67,
-            protein: 4.3,
-            iron: 8,
+            id: 4,
+            userName: 'Cupcake',
+            userId: 14,
+            mobileNo: 123456789,
+            status: 'ACTIVE',
           },
           {
-            name: 'Gingerbread',
-            calories: 356,
-            fat: 16.0,
-            carbs: 49,
-            protein: 3.9,
-            iron: 16,
+            id: 5,
+            userName: 'Gingerbread',
+            userId: 15,
+            mobileNo: 123456789,
+            status: 'ACTIVE',
           },
           {
-            name: 'Jelly bean',
-            calories: 375,
-            fat: 0.0,
-            carbs: 94,
-            protein: 0.0,
-            iron: 0,
+            id: 6,
+            userName: 'Test1',
+            userId: 16,
+            mobileNo: 123456789,
+            status: 'ACTIVE',
           },
           {
-            name: 'Lollipop',
-            calories: 392,
-            fat: 0.2,
-            carbs: 98,
-            protein: 0,
-            iron: 2,
+            id: 7,
+            userName: 'Test2',
+            userId: 17,
+            mobileNo: 123456789,
+            status: 'PASIVE',
           },
           {
-            name: 'Honeycomb',
-            calories: 408,
-            fat: 3.2,
-            carbs: 87,
-            protein: 6.5,
-            iron: 45,
+            id: 8,
+            userName: 'Test3',
+            userId: 18,
+            mobileNo: 123456789,
+            status: 'PASIVE',
           },
           {
-            name: 'Donut',
-            calories: 452,
-            fat: 25.0,
-            carbs: 51,
-            protein: 4.9,
-            iron: 22,
+            id: 9,
+            userName: 'Test4',
+            userId: 19,
+            mobileNo: 123456789,
+            status: 'ACTIVE',
           },
           {
-            name: 'KitKat',
-            calories: 518,
-            fat: 26.0,
-            carbs: 65,
-            protein: 7,
-            iron: 6,
+            id: 10,
+            userName: 'Test5',
+            userId: 20,
+            mobileNo: 123456789,
+            status: 'ACTIVE',
+          },
+          {
+            id: 11,
+            userName: 'Test6',
+            userId: 21,
+            mobileNo: 123456789,
+            status: 'PASIVE',
           },
         ],
       }

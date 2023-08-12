@@ -6,6 +6,7 @@
 
 // Components
 import App from './App.vue'
+import moment from "moment";
 
 // Composables
 import { createApp } from 'vue'
@@ -16,7 +17,7 @@ import Vue3Geolocation from 'vue3-geolocation';
 
 
 const app = createApp(App)
-
+app.provide("moment", moment);
 registerPlugins(app)
 
 app.use(Vue3Geolocation);
