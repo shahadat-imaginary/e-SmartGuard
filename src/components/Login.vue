@@ -9,13 +9,14 @@
       <v-contain style="height: 163px;">
         <v-img cover src="../assets/logo.webp"></v-img>
       </v-contain>
-      <v-alert color="error" icon="$error" title="Alert title" v-if="errorMessage" type="Error" closable>{{ errorMessage
-      }}</v-alert>
+
       <v-form @submit.prevent="login" v-model="isValid" class="pt-4" ref="form" lazy-validation>
         <v-text-field append-inner-icon="mdi mdi-account" v-model="email" label="MyKad No." :rules="emailRules"
           variant="outlined" required></v-text-field>
         <v-text-field append-inner-icon="mdi mdi-lock" v-model="password" type="password" label="password"
           :rules="passwordRules" variant="outlined" required></v-text-field>
+          <v-list-subheader color="error" v-if="errorMessage" type="Error">{{errorMessage}}</v-list-subheader>
+
         <v-checkbox class="justify-center" v-model="agreement" :rules="[v => !!v || 'You must agree to continue!']"
           color="deep-purple" required>
           <template v-slot:label>
