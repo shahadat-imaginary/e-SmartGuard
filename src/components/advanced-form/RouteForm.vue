@@ -55,11 +55,12 @@
 
                       <v-col md="10" v-for="(data, index) in inputFields" :key="index">
                         <v-row>
-
+                          <!-- {{JSON.stringify(this.item_checkpoint)}} -->
                           <v-col md="7">
-                            <v-select v-model="data.selectedCheckpoint" label="Check Point *" item-value="id"
-                              return-object item-title="name" :items="this.item_checkpoint" variant="outlined"
-                              :rules="[v => !!v || 'Item is required']" required></v-select>
+                            <v-autocomplete v-model:search="searchCheckpoint" v-model="data.selectedCheckpoint"
+                              label="Check Point *" item-value="id" return-object item-title="name"
+                              :items="this.item_checkpoint" variant="outlined" :rules="[v => !!v || 'Item is required']"
+                              required></v-autocomplete>
                           </v-col>
                           <v-col md="3">
                             <v-text-field v-model="data.expectedTime" label="ExpectedTime" :rules="timeRules"
@@ -104,9 +105,10 @@ import { debounce } from 'lodash';
 export default {
   data: () => ({
     page: 1,
-    itemsPerPage: 5,
+    itemsPerPage: 10,
     totalPage: 1,
     search: '',
+    searchCheckpoint: '',
     headers: [
       { key: 'id', title: '#', align: ' d-none' },
       { key: 'name', title: 'Route Name' },
@@ -142,8 +144,7 @@ export default {
       return [
         (v) => !!v || 'Time is required',
         (v) => /^\d+$/.test(v) || 'The value must be number',
-        (v) => v > 0 || 'The value must be greater than zero',
-        // (v) => v.length <= 3 || 'Number must be less then 4 characters',
+        (v) => v >= 0 || 'The value must be greater than zero',
       ];
     },
   },
@@ -155,7 +156,10 @@ export default {
     },
     itemsPerPage(val) {
       this.retrieveRoutes(this.page, val, this.search)
-    }
+    },
+    searchCheckpoint(val) {
+      val && val !== this.selectedCheckpoint && this.querySelections(val)
+    },
   },
 
   methods: {
@@ -175,8 +179,8 @@ export default {
     },
 
     // Get All CheckPoint Items...
-    retrieveCheckpoints() {
-      userRequest.get('/checkpoints')
+    retrieveCheckpoints(search) {
+      userRequest.get(`/checkpoints?search=${search}`)
         .then((response) => {
           this.item_checkpoint = response.data.data.data;
           console.log("get Details", response.data);
@@ -185,6 +189,11 @@ export default {
           console.log(e);
         });
     },
+
+    // Search ....
+    querySelections: debounce(function debounceRead(e) {
+      this.retrieveCheckpoints(e)
+    }, 1000),
 
     // Add selectedCheckpoint & expectedTime Input Field...
     addInputField() {
@@ -235,7 +244,7 @@ export default {
         .then(response => {
           this.route = response.data.data;
           console.log(response.data);
-          this.selectedCheckpoint = null;
+          this.inputFields = [{ selectedCheckpoint: null, expectedTime: null, }];
           this.refreshList();
         })
         .catch(e => {
@@ -251,7 +260,7 @@ export default {
           // If ID is present, update data using the API
           this.update(this.route.id);
           this.submitted = true;
-          setTimeout(() => { this.reset(); this.refreshList(); }, 2000);
+          setTimeout(() => { this.reset(); }, 2000);
         } else {
 
           let routeCheckpointsArr = this.inputFields.map((o) => {
@@ -312,11 +321,16 @@ export default {
     // Refresh & Reset the List...
     refreshList() {
       this.retrieveRoutes(this.page, this.itemsPerPage, this.search);
-      this.retrieveCheckpoints();
+      this.retrieveCheckpoints(this.searchCheckpoint);
     },
 
     reset() {
+      this.route = this.defaultRoute;
       this.submitted = false;
+      this.inputFields = [{
+        selectedCheckpoint: null,
+        expectedTime: null,
+      }];
       this.$refs.form.reset()
     },
 
@@ -324,7 +338,7 @@ export default {
 
   mounted() {
     this.retrieveRoutes(this.page, this.itemsPerPage, this.search);
-    this.retrieveCheckpoints();
+    this.retrieveCheckpoints(this.searchCheckpoint);
   },
 
 }

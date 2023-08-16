@@ -45,9 +45,9 @@
                   <v-col md="3" sm="12">
                     <v-text-field :modelValue="search" @update:modelValue="updateTextField" v-model="search"
                       append-inner-icon="mdi-magnify" label="Search" density="compact" variant="outlined"></v-text-field>
-                    <v-select v-model="selectedGuard" label="Guard Name *" item-value="id" return-object item-title="name"
-                      :items="items_guard" density="compact" variant="outlined"
-                      @update:modelValue="updateSelectGuard"></v-select>
+                    <v-autocomplete v-model:search="searchGuard" v-model="selectedGuard" label="Guard Name *"
+                      item-value="id" return-object item-title="name" :items="items_guard" density="compact"
+                      variant="outlined" @update:modelValue="updateSelectGuard"></v-autocomplete>
                   </v-col>
                 </v-row>
               </template>
@@ -78,6 +78,7 @@ export default {
       itemsPerPage: 10,
       totalPage: 1,
       search: '',
+      searchGuard: '',
       selectedGuard: { name: "" },
       guard_select: null,
       items_guard: [],
@@ -100,7 +101,10 @@ export default {
     },
     itemsPerPage(val) {
       this.retrieveAttendances(this.page, val, this.search, this.selectedGuard.name)
-    }
+    },
+    searchGuard(val) {
+      val && val !== this.selectedGuard && this.querySelectionsGuard(val)
+    },
   },
 
   methods: {
@@ -121,8 +125,8 @@ export default {
 
 
     // Get All Guards data...
-    retrieveGuard() {
-      userRequest.get('/guards')
+    retrieveGuard(search) {
+      userRequest.get(`/guards?search=${search}`)
         .then((response) => {
           this.items_guard = response.data.data.data;
           console.log("get Details", response.data);
@@ -131,6 +135,11 @@ export default {
           console.log(e);
         });
     },
+
+    // Search Guards....
+    querySelectionsGuard: debounce(function debounceRead(e) {
+      this.retrieveGuard(e)
+    }, 1000),
 
     downloadExcel() {
       window.open('http://shahadat001-001-site1.ctempurl.com/api/patrols/download-excel', '_blank', 'noreferrer');

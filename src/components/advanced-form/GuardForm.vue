@@ -53,8 +53,9 @@
                     :rules="phoneRules" required></v-text-field>
                   <v-text-field v-model="user.email" label="Email" type="email" variant="outlined" :rules="emailRules"
                     required></v-text-field>
-                  <v-select v-model="selectedSupervisor" label="Supervisor" item-value="id" return-object=""
-                    item-title="name" :items="this.items_supervisor" variant="outlined" required></v-select>
+                  <v-autocomplete v-model:search="searchSupervisor" v-model="selectedSupervisor" label="Supervisor"
+                    item-value="id" return-object="" item-title="name" :items="this.items_supervisor" variant="outlined"
+                    required></v-autocomplete>
                   <div v-if="!editing">
                     <v-text-field label="Password" v-model="user.password" type="password" variant="outlined"
                       :rules="passwordRules" required></v-text-field>
@@ -96,6 +97,7 @@ export default {
     itemsPerPage: 10,
     totalPage: 1,
     search: '',
+    searchSupervisor: '',
     headers: [
       { key: 'id', title: '#', align: ' d-none' },
       { key: 'name', title: 'Name' },
@@ -175,7 +177,10 @@ export default {
     },
     itemsPerPage(val) {
       this.retrieveUsers(this.page, val, this.search)
-    }
+    },
+    searchSupervisor(val) {
+      val && val !== this.selectedGuard && this.querySelections(val)
+    },
   },
 
 
@@ -196,8 +201,8 @@ export default {
     },
 
     // Get Supervisor data...
-    retrieveSupervisor() {
-      userRequest.get('/supervisors')
+    retrieveSupervisor(search) {
+      userRequest.get(`/supervisors?search=${search}`)
         .then((response) => {
           this.items_supervisor = response.data.data.data;
           console.log("Get Supervisor Details", response.data);
@@ -206,6 +211,11 @@ export default {
           console.log(e);
         });
     },
+
+    // Search Guards....
+    querySelections: debounce(function debounceRead(e) {
+      this.retrieveSupervisor(e)
+    }, 1000),
 
     // Edit Guard data...
     editItem(id) {

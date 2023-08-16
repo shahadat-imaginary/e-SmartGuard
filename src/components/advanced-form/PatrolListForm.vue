@@ -73,12 +73,12 @@
                     :rules="[v => !!v || 'End Date is required']" variant="outlined" required></v-text-field>
                   <v-text-field v-model="endTime" type="time" label="End Time *"
                     :rules="[v => !!v || 'End Time is required']" variant="outlined" required></v-text-field>
-                  <v-select v-model="selectedGuard" label="Guard Name *" item-value="id" return-object=""
-                    item-title="name" :items="this.items_guard" :rules="[(v) => !!v || 'Guard is required']"
-                    variant="outlined" required></v-select>
-                  <v-select v-model="selectedRoute" label="Route *" item-value="id" return-object="" item-title="name"
-                    :items="this.items_route" :rules="[(v) => !!v || 'Route is required']" variant="outlined"
-                    required></v-select>
+                  <v-autocomplete v-model:search="searchGuard" v-model="selectedGuard" label="Guard Name *"
+                    item-value="id" return-object="" item-title="name" :items="this.items_guard"
+                    :rules="[(v) => !!v || 'Guard is required']" variant="outlined" required></v-autocomplete>
+                  <v-autocomplete v-model:search="searchRoute" v-model="selectedRoute" label="Route *" item-value="id"
+                    return-object="" item-title="name" :items="this.items_route"
+                    :rules="[(v) => !!v || 'Route is required']" variant="outlined" required></v-autocomplete>
 
                   <div class="d-flex">
                     <v-btn color="success" class="mt-4 mr-2" type="submit">Save</v-btn>
@@ -112,9 +112,11 @@ export default {
   },
   data: () => ({
     page: 1,
-    itemsPerPage: 3,
+    itemsPerPage: 10,
     totalPage: 1,
     search: '',
+    searchGuard: '',
+    searchRoute: '',
     headers: [
       { key: 'id', title: '#', align: ' d-none' },
       { key: 'guard', title: 'Guard' },
@@ -164,7 +166,13 @@ export default {
     },
     itemsPerPage(val) {
       this.retrievePatrols(this.page, val, this.search)
-    }
+    },
+    searchGuard(val) {
+      val && val !== this.selectedGuard && this.querySelectionsGuard(val)
+    },
+    searchRoute(val) {
+      val && val !== this.selectedRoute && this.querySelectionsRoute(val)
+    },
   },
 
   methods: {
@@ -187,8 +195,8 @@ export default {
     },
 
     // Get All Guards data...
-    retrieveGuard() {
-      userRequest.get('/guards')
+    retrieveGuard(search) {
+      userRequest.get(`/guards?search=${search}`)
         .then((response) => {
           this.items_guard = response.data.data.data;
           console.log("get Details", response.data);
@@ -198,9 +206,14 @@ export default {
         });
     },
 
+    // Search Guards....
+    querySelectionsGuard: debounce(function debounceRead(e) {
+      this.retrieveGuard(e)
+    }, 1000),
+
     // Get All Routes data...
-    retrieveRoute() {
-      userRequest.get('/routes')
+    retrieveRoute(search) {
+      userRequest.get(`/routes?search=${search}`)
         .then((response) => {
           this.items_route = response.data.data.data;
           console.log("get Details", response.data);
@@ -209,6 +222,11 @@ export default {
           console.log(e);
         });
     },
+
+    // Search Routes....
+    querySelectionsRoute: debounce(function debounceRead(e) {
+      this.retrieveRoute(e)
+    }, 1000),
 
     // Edit Patrols data...
     editItem(id) {
