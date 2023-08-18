@@ -35,7 +35,7 @@
                 </div>
               </template>
               <template v-slot:top>
-                <v-row class="pt-2 justify-space-between">
+                <v-row class="pt-2 justify-start">
                   <v-col md="2" sm="12">
                     <v-select v-model="itemsPerPage" label="ItemsPerPage" :items="[10, 25, 50]" density="compact"
                       variant="outlined"></v-select>
@@ -43,11 +43,17 @@
                     <v-btn color="blue-darken-4" variant="outlined" class="mr-1" @click="downloadPdf">PDF</v-btn>
                   </v-col>
                   <v-col md="3" sm="12">
-                    <v-text-field :modelValue="search" @update:modelValue="updateTextField" v-model="search"
-                      append-inner-icon="mdi-magnify" label="Search" density="compact" variant="outlined"></v-text-field>
-                    <v-autocomplete v-model:search="searchGuard" v-model="selectedGuard" label="Guard Name *"
+                    <v-text-field v-model="startdate" type="date" label="Start Date"
+                     @update:modelValue="updateStartDateField" variant="outlined"></v-text-field>
+                    <!-- <v-text-field :modelValue="search" @update:modelValue="updateTextField" v-model="search"
+                      append-inner-icon="mdi-magnify" label="Search" density="compact" variant="outlined"></v-text-field> -->
+                    <!-- <v-autocomplete v-model:search="searchGuard" v-model="selectedGuard" label="Guard Name *"
                       item-value="id" return-object item-title="name" :items="items_guard" density="compact"
-                      variant="outlined" @update:modelValue="updateSelectGuard"></v-autocomplete>
+                      variant="outlined" @update:modelValue="updateSelectGuard"></v-autocomplete> -->
+                  </v-col>
+                  <v-col md="3" sm="12">
+                    <v-text-field v-model="enddate" type="date" label="End Date"
+                      @update:modelValue="updateEndDateField" variant="outlined"></v-text-field>
                   </v-col>
                 </v-row>
               </template>
@@ -78,6 +84,8 @@ export default {
       itemsPerPage: 10,
       totalPage: 1,
       search: '',
+      startdate: '',
+      enddate: '',
       searchGuard: '',
       selectedGuard: { name: "" },
       guard_select: null,
@@ -109,8 +117,8 @@ export default {
 
   methods: {
     // Get all data...
-    retrieveAttendances(page, itemPerPage, search, guard) {
-      userRequest.get(`/patrols/attendance?PageNumber=${page}&PageSize=${itemPerPage}&search=${search}&guard=${guard}`)
+    retrieveAttendances(page, itemPerPage, search, guard, startdate, enddate) {
+      userRequest.get(`/patrols/attendance?PageNumber=${page}&PageSize=${itemPerPage}&startdate=${startdate}&enddate=${enddate}`)
         .then((response) => {
           this.items = response.data.data.data;
           console.log("Get All", response.data.data.data);
@@ -173,7 +181,19 @@ export default {
 
     // Search ...
     updateTextField: debounce(function debounceRead(e) {
-      this.retrieveAttendances(this.page, this.itemsPerPage, e, this.selectedGuard.name)
+      this.retrieveAttendances(this.page, this.itemsPerPage, e, this.selectedGuard.name, this.startdate, this.enddate)
+    }, 1000),
+
+    // startdate
+    updateStartDateField: debounce(function debounceRead(e) {
+      console.log("Start Date", e)
+      this.retrieveAttendances(this.page, this.itemsPerPage, this.search, this.selectedGuard.name, e, this.enddate)
+    }, 1000),
+
+    // enddate
+    updateEndDateField: debounce(function debounceRead(e) {
+      console.log("End Date", e)
+      this.retrieveAttendances(this.page, this.itemsPerPage, this.search, this.selectedGuard.name, this.startdate, e)
     }, 1000),
 
     // Pagination ......
@@ -193,7 +213,7 @@ export default {
   },
 
   mounted() {
-    this.retrieveAttendances(this.page, this.itemsPerPage, this.search, this.selectedGuard.name);
+    this.retrieveAttendances(this.page, this.itemsPerPage, this.search, this.selectedGuard.name, this.startdate, this.enddate);
     this.retrieveGuard(this.search);
   },
 }
