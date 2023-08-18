@@ -189,12 +189,12 @@ export default {
   // Refresh the List...
   refreshList() {
     this.retrieveAttendances(this.page, this.itemsPerPage, this.search, this.selectedGuard.name);
-    this.retrieveGuard();
+    this.retrieveGuard(this.search);
   },
 
   mounted() {
     this.retrieveAttendances(this.page, this.itemsPerPage, this.search, this.selectedGuard.name);
-    this.retrieveGuard();
+    this.retrieveGuard(this.search);
   },
 }
 </script>
