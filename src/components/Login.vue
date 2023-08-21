@@ -69,6 +69,7 @@ export default {
         };
 
         try {
+          this.isLoading = true;
           // Replace 'api-url' with the actual URL of your authentication endpoint.
           const { data } = await axios.post('http://shahadat001-001-site1.ctempurl.com/api/users/login', credentials);
           console.log('test:', data);
@@ -88,6 +89,9 @@ export default {
           console.error('Login failed:', error);
           // Handle login error here, such as showing an error message to the user.
           this.errorMessage = 'Invalid credentials. Please try again.';
+        }
+        finally {
+          this.isLoading = false;
         }
       }
     },
