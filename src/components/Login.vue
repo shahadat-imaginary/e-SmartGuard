@@ -10,7 +10,7 @@
         <v-img cover src="../assets/logo.webp"></v-img>
       </v-contain>
 
-      <v-form @submit.prevent="login" v-model="isValid" class="pt-4" ref="form" lazy-validation>
+      <v-form @submit.prevent="login" v-model="isValid" class="pt-4" ref="form" lazy-validation @keyup.enter="login">
         <v-text-field append-inner-icon="mdi mdi-account" v-model="email" label="MyKad No." :rules="emailRules"
           variant="outlined" required></v-text-field>
         <v-text-field append-inner-icon="mdi mdi-lock" v-model="password" type="password" label="password"
