@@ -147,7 +147,7 @@ export default {
     phoneRules() {
       return [
         (v) => !!v || 'Number is required',
-        (v) => /^(01){1}[3-9]{1}\d{8}$/.test(v) || 'Phone Number must be at least 11 characters',
+        (v) => /^(60){1}\d{9}$/.test(v) || 'Phone Number must be 11 characters starts with 60',
       ];
     },
     emailRules() {
