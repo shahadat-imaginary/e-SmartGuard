@@ -227,7 +227,7 @@ export default {
 
     // Refresh & Reset the List...
     refreshList() {
-      this.retrieveUsers();
+      this.retrieveUsers(this.page, this.itemsPerPage, this.search);
     },
 
     reset() {
