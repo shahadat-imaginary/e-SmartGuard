@@ -242,7 +242,7 @@ export default {
     // Refresh & Reset the List...
     refreshList() {
       this.retrieveUsers(this.page, this.itemsPerPage, this.search);
-      this.retrieveSupervisor();
+      this.retrieveSupervisor(this.search);
     },
 
     reset() {
@@ -256,7 +256,7 @@ export default {
 
   mounted() {
     this.retrieveUsers(this.page, this.itemsPerPage, this.search);
-    this.retrieveSupervisor();
+    this.retrieveSupervisor(this.search);
   },
 }
 </script>

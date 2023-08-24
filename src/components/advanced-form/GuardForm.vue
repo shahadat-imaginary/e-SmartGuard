@@ -179,7 +179,7 @@ export default {
       this.retrieveUsers(this.page, val, this.search)
     },
     searchSupervisor(val) {
-      val && val !== this.selectedGuard && this.querySelections(val)
+      val && val !== this.selectedSupervisor && this.querySelections(val)
     },
   },
 
@@ -307,7 +307,7 @@ export default {
     // Refresh & Reset the List...
     refreshList() {
       this.retrieveUsers(this.page, this.itemsPerPage, this.search);
-      this.retrieveSupervisor();
+      this.retrieveSupervisor(this.search);
     },
 
     reset() {
@@ -321,7 +321,7 @@ export default {
 
   mounted() {
     this.retrieveUsers(this.page, this.itemsPerPage, this.search);
-    this.retrieveSupervisor();
+    this.retrieveSupervisor(this.search);
   },
 
 }
