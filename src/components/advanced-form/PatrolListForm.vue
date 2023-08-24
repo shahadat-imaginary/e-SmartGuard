@@ -327,8 +327,8 @@ export default {
     // Refresh & Reset the List...
     refreshList() {
       this.retrievePatrols(this.page, this.itemsPerPage, this.search);
-      this.retrieveGuard();
-      this.retrieveRoute();
+      this.retrieveGuard(this.search);
+      this.retrieveRoute(this.search);
     },
 
     reset() {
@@ -345,8 +345,8 @@ export default {
 
   mounted() {
     this.retrievePatrols(this.page, this.itemsPerPage, this.search);
-    this.retrieveGuard();
-    this.retrieveRoute();
+    this.retrieveGuard(this.search);
+    this.retrieveRoute(this.search);
   },
 
 }
