@@ -279,6 +279,7 @@ export default {
 
           let routeCreate = {
             name: this.route.name,
+            followSequence: this.checked,
             routeCheckpoints: routeCheckpointsArr
           };
 
