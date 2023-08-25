@@ -44,16 +44,20 @@
                   </v-col>
                   <v-col md="3" sm="12">
                     <v-text-field v-model="startdate" type="date" label="Start Date"
-                     @update:modelValue="updateStartDateField" variant="outlined"></v-text-field>
+                      @update:modelValue="updateStartDateField" density="compact" variant="outlined"></v-text-field>
                     <!-- <v-text-field :modelValue="search" @update:modelValue="updateTextField" v-model="search"
-                      append-inner-icon="mdi-magnify" label="Search" density="compact" variant="outlined"></v-text-field> -->
-                    <!-- <v-autocomplete v-model:search="searchGuard" v-model="selectedGuard" label="Guard Name *"
+                      append-inner-icon="mdi-magnify" label="Search" density="compact" variant="outlined"></v-text-field>
+                    <v-autocomplete v-model:search="searchGuard" v-model="selectedGuard" label="Guard Name *"
                       item-value="id" return-object item-title="name" :items="items_guard" density="compact"
                       variant="outlined" @update:modelValue="updateSelectGuard"></v-autocomplete> -->
                   </v-col>
                   <v-col md="3" sm="12">
-                    <v-text-field v-model="enddate" type="date" label="End Date"
-                      @update:modelValue="updateEndDateField" variant="outlined"></v-text-field>
+                    <v-text-field v-model="enddate" type="date" label="End Date" @update:modelValue="updateEndDateField"
+                      density="compact" variant="outlined"></v-text-field>
+                  </v-col>
+                  <v-col md="3" sm="12">
+                    <v-select v-model="selectedStatus" label="Status *" :items="this.status" density="compact"
+                      variant="outlined" @update:modelValue="updateSelectStatus"></v-select>
                   </v-col>
                 </v-row>
               </template>
@@ -90,6 +94,8 @@ export default {
       selectedGuard: { name: "" },
       guard_select: null,
       items_guard: [],
+      status: ['Scheduled', 'Started', 'Missed', 'Completed'],
+      selectedStatus: "",
       headers: [
         { key: 'start', title: 'Date' },
         { key: 'guard', title: 'Guard' },
@@ -105,10 +111,10 @@ export default {
   //this one will populate new data set when user changes current page.
   watch: {
     page(val) {
-      this.retrieveAttendances(val, this.itemsPerPage, this.search, this.selectedGuard.name)
+      this.retrieveAttendances(val, this.itemsPerPage, this.search, this.selectedGuard.name, this.status)
     },
     itemsPerPage(val) {
-      this.retrieveAttendances(this.page, val, this.search, this.selectedGuard.name)
+      this.retrieveAttendances(this.page, val, this.search, this.selectedGuard.name, this.status)
     },
     searchGuard(val) {
       val && val !== this.selectedGuard && this.querySelectionsGuard(val)
@@ -116,12 +122,12 @@ export default {
   },
 
   methods: {
-    // Get all data...
-    retrieveAttendances(page, itemPerPage, search, guard, startdate, enddate) {
-      userRequest.get(`/patrols/attendance?PageNumber=${page}&PageSize=${itemPerPage}&startdate=${startdate}&enddate=${enddate}`)
+    // Get all Attendance data...
+    retrieveAttendances(page, itemPerPage, search, guard, startdate, enddate, status) {
+      userRequest.get(`/patrols/attendance?PageNumber=${page}&PageSize=${itemPerPage}&startdate=${startdate}&enddate=${enddate}&status=${status}`)
         .then((response) => {
           this.items = response.data.data.data;
-          console.log("Get All", response.data.data.data);
+          console.log("Get All Attendance", response.data.data.data);
           this.page = response.data.data.pageNumber;
           this.itemsPerPage = response.data.data.pageSize;
           this.totalPage = response.data.data.pageCount;
@@ -137,7 +143,7 @@ export default {
       userRequest.get(`/guards?search=${search}`)
         .then((response) => {
           this.items_guard = response.data.data.data;
-          console.log("get Details", response.data);
+          // console.log("Get All Guards Details", response.data);
         })
         .catch((e) => {
           console.log(e);
@@ -181,19 +187,25 @@ export default {
 
     // Search ...
     updateTextField: debounce(function debounceRead(e) {
-      this.retrieveAttendances(this.page, this.itemsPerPage, e, this.selectedGuard.name, this.startdate, this.enddate)
+      this.retrieveAttendances(this.page, this.itemsPerPage, e, this.selectedGuard.name, this.startdate, this.enddate, this.status)
     }, 1000),
 
     // startdate
     updateStartDateField: debounce(function debounceRead(e) {
       console.log("Start Date", e)
-      this.retrieveAttendances(this.page, this.itemsPerPage, this.search, this.selectedGuard.name, e, this.enddate)
+      this.retrieveAttendances(this.page, this.itemsPerPage, this.search, this.selectedGuard.name, e, this.enddate, this.status)
     }, 1000),
 
     // enddate
     updateEndDateField: debounce(function debounceRead(e) {
       console.log("End Date", e)
-      this.retrieveAttendances(this.page, this.itemsPerPage, this.search, this.selectedGuard.name, this.startdate, e)
+      this.retrieveAttendances(this.page, this.itemsPerPage, this.search, this.selectedGuard.name, this.startdate, e, this.status)
+    }, 1000),
+
+    // Status select search
+    updateSelectStatus: debounce(function debounceRead(e) {
+      console.log("Status", e)
+      this.retrieveAttendances(this.page, this.itemsPerPage, this.search, this.startdate, this.enddate, e)
     }, 1000),
 
     // Pagination ......
@@ -203,17 +215,17 @@ export default {
 
     handlePageChange(page) {
       console.log("HandlePage", page)
-      this.retrieveAttendances(page, this.itemsPerPage, this.search, this.selectedGuard.name)
+      this.retrieveAttendances(page, this.itemsPerPage, this.search, this.selectedGuard.name, this.startdate, this.enddate, this.status)
     },
   },
   // Refresh the List...
   refreshList() {
-    this.retrieveAttendances(this.page, this.itemsPerPage, this.search, this.selectedGuard.name);
+    this.retrieveAttendances(this.page, this.itemsPerPage, this.search, this.selectedGuard.name, this.startdate, this.enddate, this.status);
     this.retrieveGuard(this.search);
   },
 
   mounted() {
-    this.retrieveAttendances(this.page, this.itemsPerPage, this.search, this.selectedGuard.name, this.startdate, this.enddate);
+    this.retrieveAttendances(this.page, this.itemsPerPage, this.search, this.selectedGuard.name, this.startdate, this.enddate, this.status);
     this.retrieveGuard(this.search);
   },
 }
