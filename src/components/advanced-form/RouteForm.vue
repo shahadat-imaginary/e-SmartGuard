@@ -68,7 +68,7 @@
                               required></v-autocomplete>
                           </v-col>
                           <v-col md="3">
-                            <v-text-field v-model="data.expectedTime" label="ExpectedTime" :rules="timeRules"
+                            <v-text-field v-model="data.expectedTime" label="ExpectedTime" type="number" :rules="timeRules"
                               variant="outlined"></v-text-field>
                           </v-col>
                           <v-col md="2">
@@ -148,7 +148,7 @@ export default {
   computed: {
     timeRules() {
       return [
-        (v) => !!v || 'Time is required',
+        (v) => v !== "" || 'Time is required',
         (v) => /^\d+$/.test(v) || 'The value must be number',
         (v) => v >= 0 || 'The value must be greater than zero',
       ];
