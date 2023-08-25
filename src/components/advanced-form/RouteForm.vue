@@ -50,7 +50,7 @@
                 <v-form ref="form" @submit.prevent="save" v-model="valid" lazy-validation>
                   <v-text-field v-model="route.name" label="Route Name *" variant="outlined"
                     :rules="[v => !!v || 'Route Name is required']" required></v-text-field>
-                  <v-checkbox class="justify-center" v-model="checked" color="deep-purple" required>
+                  <v-checkbox class="justify-center" v-model="route.followSequence" color="deep-purple" required>
                     <template v-slot:label>
                       Follow the sequence
                     </template>
@@ -114,7 +114,7 @@ export default {
     totalPage: 1,
     search: '',
     searchCheckpoint: '',
-    checked: false,
+    // followSequence: false,
     headers: [
       { key: 'id', title: '#', align: ' d-none' },
       { key: 'name', title: 'Route Name' },
@@ -129,11 +129,13 @@ export default {
     route: {
       id: null,
       name: '',
+      followSequence: false,
       routeCheckpoints: null,
     },
     defaultRoute: {
       id: null,
       name: '',
+      followSequence: false,
       routeCheckpoints: null,
     },
     inputFields: [
@@ -244,6 +246,7 @@ export default {
       })
       let routeUpdate = {
         name: this.route.name,
+        followSequence: this.route.followSequence,
         routeCheckpoints: routeCheckpointsArr,
       };
       userRequest.put(`/routes/${id}`, routeUpdate)
@@ -279,7 +282,7 @@ export default {
 
           let routeCreate = {
             name: this.route.name,
-            followSequence: this.checked,
+            followSequence: this.route.followSequence,
             routeCheckpoints: routeCheckpointsArr
           };
 
