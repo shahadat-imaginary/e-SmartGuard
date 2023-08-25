@@ -50,6 +50,11 @@
                 <v-form ref="form" @submit.prevent="save" v-model="valid" lazy-validation>
                   <v-text-field v-model="route.name" label="Route Name *" variant="outlined"
                     :rules="[v => !!v || 'Route Name is required']" required></v-text-field>
+                  <v-checkbox class="justify-center" v-model="checked" color="deep-purple" required>
+                    <template v-slot:label>
+                      Follow the sequence
+                    </template>
+                  </v-checkbox>
                   <div>
                     <v-row>
 
@@ -109,6 +114,7 @@ export default {
     totalPage: 1,
     search: '',
     searchCheckpoint: '',
+    checked: false,
     headers: [
       { key: 'id', title: '#', align: ' d-none' },
       { key: 'name', title: 'Route Name' },
