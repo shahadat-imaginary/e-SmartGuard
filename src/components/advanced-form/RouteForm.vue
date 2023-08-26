@@ -47,7 +47,7 @@
           <v-card-text class="mt-3">
             <v-sheet class="mx-auto">
               <div v-if="!submitted">
-                <v-form ref="form" @submit.prevent="save" v-model="valid" lazy-validation>
+                <v-form ref="form" @submit.prevent="save" lazy-validation>
                   <v-text-field v-model="route.name" label="Route Name *" variant="outlined"
                     :rules="[v => !!v || 'Route Name is required']" required></v-text-field>
                   <v-checkbox class="justify-center" v-model="route.followSequence" color="deep-purple" required>
@@ -114,7 +114,7 @@ export default {
     totalPage: 1,
     search: '',
     searchCheckpoint: '',
-    // followSequence: false,
+    submitted: false,
     headers: [
       { key: 'id', title: '#', align: ' d-none' },
       { key: 'name', title: 'Route Name' },

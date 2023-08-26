@@ -1,16 +1,12 @@
 <template>
-  <div style="align-items: center;
-    background-color: #e9ecef;
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
-    justify-content: center;">
-    <v-card class="mx-auto pa-4" style="max-width: 360px;">
+  <div class="d-flex align-center justify-center flex-column" style="
+    background-color: #e9ecef; height: 100vh;">
+    <v-card class="mx-auto pa-4">
       <v-contain style="height: 163px;">
         <v-img cover src="../assets/logo.webp"></v-img>
       </v-contain>
 
-      <v-form @submit.prevent="login" v-model="isValid" class="pt-4" ref="form" lazy-validation @keyup.enter="login">
+      <v-form @submit.prevent="login" class="pt-4" ref="form" lazy-validation @keyup.enter="login">
         <v-text-field append-inner-icon="mdi mdi-account" v-model="email" label="MyKad No." :rules="emailRules"
           variant="outlined" required></v-text-field>
         <v-text-field append-inner-icon="mdi mdi-lock" v-model="password" type="password" label="password"
@@ -44,6 +40,7 @@ export default {
     isLoading: false,
     agreement: false,
     errorMessage: '',
+    submit: false,
   }),
   computed: {
     emailRules() {

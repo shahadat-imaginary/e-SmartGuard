@@ -46,10 +46,10 @@
           <v-card-text class="mt-3">
             <v-sheet class="mx-auto">
               <div v-if="!submitted">
-                <v-form ref="form" @submit.prevent="save" v-model="valid" lazy-validation>
+                <v-form ref="form" @submit.prevent="save" lazy-validation>
                   <v-text-field v-model="user.name" label="Name *" variant="outlined" :rules="nameRules"
                     required></v-text-field>
-                  <v-text-field v-model="user.phoneNumber" label="Mobile No. *" :type="Number" variant="outlined"
+                  <v-text-field v-model="user.phoneNumber" label="Mobile No. *" type="number" variant="outlined"
                     :rules="phoneRules" required></v-text-field>
                   <v-text-field v-model="user.email" label="Email" type="email" variant="outlined" :rules="emailRules"
                     required></v-text-field>
@@ -112,6 +112,7 @@ export default {
     editing: false,
     status: ['Active', 'Inactive'],
     selectedSupervisor: [],
+    submitted: false,
 
     user: {
       id: null,

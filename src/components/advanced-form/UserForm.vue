@@ -45,7 +45,7 @@
                 <v-form ref="form" @submit.prevent="save" lazy-validation>
                   <v-text-field v-model="user.name" label="User Name *" variant="outlined" :rules="nameRules"
                     required></v-text-field>
-                  <v-text-field v-model="user.phoneNumber" label="Mobile No. *" :type="Number" variant="outlined"
+                  <v-text-field v-model="user.phoneNumber" label="Mobile No. *" type="number" variant="outlined"
                     :rules="phoneRules" required></v-text-field>
                   <v-text-field v-model="user.position" label="Position *" variant="outlined" :rules="positionRules"
                     required></v-text-field>

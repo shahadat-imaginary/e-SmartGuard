@@ -64,7 +64,7 @@
           <v-card-text class="mt-3">
             <v-sheet class="mx-auto">
               <div v-if="!submitted">
-                <v-form ref="form" @submit.prevent="save" v-model="valid" lazy-validation>
+                <v-form ref="form" @submit.prevent="save" lazy-validation>
                   <v-text-field v-model="startdate" type="date" label="Start Date *"
                     :rules="[v => !!v || 'Start Date is required']" variant="outlined" required></v-text-field>
                   <v-text-field v-model="startTime" type="time" label="Start Time *"
@@ -136,6 +136,7 @@ export default {
     endTime: null,
     startdate: null,
     enddate: null,
+    submitted: false,
 
     patrol: {
       id: null,

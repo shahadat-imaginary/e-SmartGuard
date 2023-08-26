@@ -42,12 +42,12 @@
           <v-card-text class="mt-3">
             <v-sheet class="mx-auto">
               <div v-if="!submitted">
-                <v-form ref="form" @submit.prevent="save" v-model="valid" lazy-validation>
+                <v-form ref="form" @submit.prevent="save" lazy-validation>
                   <v-text-field v-model="checkItem.name" label="Check Point Name *" variant="outlined"
                     :rules="checkpointnameRules" required></v-text-field>
-                  <v-text-field v-model="checkItem.latitude" label="Lalitude *" :type="Number" variant="outlined"
+                  <v-text-field v-model="checkItem.latitude" label="Lalitude *" type="number" variant="outlined"
                     :rules="latitudeRules" required></v-text-field>
-                  <v-text-field v-model="checkItem.longitude" label="Longitude *" :type="Number" variant="outlined"
+                  <v-text-field v-model="checkItem.longitude" label="Longitude *" type="number" variant="outlined"
                     :rules="longitudeRules" required></v-text-field>
 
                   <div class="d-flex">
@@ -88,6 +88,7 @@ export default {
       { key: 'actions', title: 'Actions', sortable: false },
     ],
     checkPointItems: [],
+    submitted: false,
 
     checkItem: {
       id: null,
@@ -101,7 +102,6 @@ export default {
       latitude: null,
       longitude: null,
     },
-    submitted: false,
   }),
 
   computed: {
