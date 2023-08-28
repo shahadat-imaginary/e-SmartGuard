@@ -94,7 +94,7 @@ export default {
       selectedGuard: { name: "" },
       guard_select: null,
       items_guard: [],
-      status: ['Scheduled', 'Started', 'Missed', 'Completed'],
+      status: ['', 'Scheduled', 'Started', 'Missed', 'Completed'],
       selectedStatus: "",
       headers: [
         { key: 'start', title: 'Date' },
@@ -111,10 +111,12 @@ export default {
   //this one will populate new data set when user changes current page.
   watch: {
     page(val) {
-      this.retrieveAttendances(val, this.itemsPerPage, this.search, this.selectedGuard.name, this.status)
+      this.page = val;
+      this.retrieveAttendances()
     },
     itemsPerPage(val) {
-      this.retrieveAttendances(this.page, val, this.search, this.selectedGuard.name, this.status)
+      this.itemsPerPage = val;
+      this.retrieveAttendances()
     },
     searchGuard(val) {
       val && val !== this.selectedGuard && this.querySelectionsGuard(val)
@@ -123,8 +125,8 @@ export default {
 
   methods: {
     // Get all Attendance data...
-    retrieveAttendances(page, itemPerPage, search, guard, startdate, enddate, status) {
-      userRequest.get(`/patrols/attendance?PageNumber=${page}&PageSize=${itemPerPage}&startdate=${startdate}&enddate=${enddate}&status=${status}`)
+    retrieveAttendances() {
+      userRequest.get(`/patrols/attendance?PageNumber=${this.page}&PageSize=${this.itemsPerPage}&startdate=${this.startdate}&enddate=${this.enddate}&status=${this.selectedStatus}`)
         .then((response) => {
           this.items = response.data.data.data;
           console.log("Get All Attendance", response.data.data.data);
@@ -136,7 +138,6 @@ export default {
           console.log(e);
         });
     },
-
 
     // Get All Guards data...
     retrieveGuard(search) {
@@ -182,30 +183,32 @@ export default {
 
     // Guard name select search
     updateSelectGuard: debounce(function debounceRead(e) {
-      this.retrieveAttendances(this.page, this.itemsPerPage, this.search, e.name)
+      this.selectedGuard = e;
+      this.retrieveAttendances()
     }, 1000),
 
     // Search ...
     updateTextField: debounce(function debounceRead(e) {
-      this.retrieveAttendances(this.page, this.itemsPerPage, e, this.selectedGuard.name, this.startdate, this.enddate, this.status)
+      this.search = e;
+      this.retrieveAttendances()
     }, 1000),
 
     // startdate
     updateStartDateField: debounce(function debounceRead(e) {
-      console.log("Start Date", e)
-      this.retrieveAttendances(this.page, this.itemsPerPage, this.search, this.selectedGuard.name, e, this.enddate, this.status)
+      this.startdate = e;
+      this.retrieveAttendances()
     }, 1000),
 
     // enddate
     updateEndDateField: debounce(function debounceRead(e) {
-      console.log("End Date", e)
-      this.retrieveAttendances(this.page, this.itemsPerPage, this.search, this.selectedGuard.name, this.startdate, e, this.status)
+      this.enddate = e;
+      this.retrieveAttendances()
     }, 1000),
 
     // Status select search
     updateSelectStatus: debounce(function debounceRead(e) {
-      console.log("Status", e)
-      this.retrieveAttendances(this.page, this.itemsPerPage, this.search, this.startdate, this.enddate, e)
+      this.selectedStatus = e;
+      this.retrieveAttendances()
     }, 1000),
 
     // Pagination ......
@@ -214,18 +217,18 @@ export default {
     },
 
     handlePageChange(page) {
-      console.log("HandlePage", page)
-      this.retrieveAttendances(page, this.itemsPerPage, this.search, this.selectedGuard.name, this.startdate, this.enddate, this.status)
+      this.page = page;
+      this.retrieveAttendances()
     },
   },
   // Refresh the List...
   refreshList() {
-    this.retrieveAttendances(this.page, this.itemsPerPage, this.search, this.selectedGuard.name, this.startdate, this.enddate, this.status);
+    this.retrieveAttendances();
     this.retrieveGuard(this.search);
   },
 
   mounted() {
-    this.retrieveAttendances(this.page, this.itemsPerPage, this.search, this.selectedGuard.name, this.startdate, this.enddate, this.status);
+    this.retrieveAttendances();
     this.retrieveGuard(this.search);
   },
 }
