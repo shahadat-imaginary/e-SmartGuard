@@ -39,8 +39,8 @@
                   <v-col md="2" sm="12">
                     <v-select v-model="itemsPerPage" label="ItemsPerPage" :items="[10, 25, 50]" density="compact"
                       variant="outlined"></v-select>
-                    <v-btn color="blue-darken-4" variant="outlined" class="mr-1" @click="downloadExcel">CSV</v-btn>
-                    <v-btn color="blue-darken-4" variant="outlined" class="mr-1" @click="downloadPdf">PDF</v-btn>
+                    <v-btn color="blue-darken-4" variant="outlined" class="m-1" @click="downloadExcel">Excel</v-btn>
+                    <v-btn color="blue-darken-4" variant="outlined" class="m-1" @click="downloadPdf">PDF</v-btn>
                   </v-col>
                   <v-col md="3" sm="12">
                     <v-text-field v-model="startdate" type="date" label="Start Date"
@@ -157,7 +157,7 @@ export default {
     }, 1000),
 
     downloadExcel() {
-      window.open('http://shahadat001-001-site1.ctempurl.com/api/patrols/download-excel', '_blank', 'noreferrer');
+      window.open(`http://shahadat001-001-site1.ctempurl.com/api/patrols/download-excel?startdate=${this.startdate}&enddate=${this.enddate}&status=${this.selectedStatus}`, '_blank', 'noreferrer');
       // userRequest.get('/patrols/download-excel')
       //   .then((response) => {
 
@@ -168,7 +168,7 @@ export default {
     },
 
     downloadPdf() {
-      userRequest.get('/patrols/download-pdf')
+      userRequest.get(`/patrols/download-pdf?startdate=${this.startdate}&enddate=${this.enddate}&status=${this.selectedStatus}`)
         .then((response) => {
           console.log("Get All", response.data.data.data);
         })
