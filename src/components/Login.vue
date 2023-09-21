@@ -68,7 +68,7 @@ export default {
         try {
           this.isLoading = true;
           // Replace 'api-url' with the actual URL of your authentication endpoint.
-          const { data } = await axios.post('http://shahadat001-001-site1.ctempurl.com/api/users/login', credentials);
+          const { data } = await axios.post('https://localhost:7082/api/users/login', credentials);
           console.log('test:', data);
 
           // Assuming the API returns a token in the response data upon successful authentication.
