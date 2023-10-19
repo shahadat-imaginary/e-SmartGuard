@@ -1,9 +1,9 @@
 import axios from "axios";
-const baseURL = 'http://shahadat001-001-site1.ctempurl.com/api';
+const baseURL = 'https://localhost:7082/api';
 const refreshURL = "/auth/api/token/refresh/";
 
 const axiosInstance = axios.create({
-  baseURL: 'http://shahadat001-001-site1.ctempurl.com/api',
+  baseURL: 'https://localhost:7082/api',
 });
 
 const request = () => {

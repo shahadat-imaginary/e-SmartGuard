@@ -34,6 +34,18 @@
               <v-list-item prepend-icon="mdi mdi-circle-outline" value="Guard List" title="Guard List" to="/guards"></v-list-item>
               <v-list-item prepend-icon="mdi mdi-circle-outline" value="Guard Change Password" title="Change Password" to="/guard-password-change"></v-list-item>
             </v-list-group>
+            <v-list-group value="Campus Management">
+              <template v-slot:activator="{ props }">
+                <v-list-item v-bind="props" prepend-icon="mdi mdi-shield-account" title="Campus Management"></v-list-item>
+              </template>
+              <v-list-item prepend-icon="mdi mdi-circle-outline" value="Campus List" title="Campus List" to="/campuses"></v-list-item>
+            </v-list-group>
+            <v-list-group value="Shift Management">
+              <template v-slot:activator="{ props }">
+                <v-list-item v-bind="props" prepend-icon="mdi mdi-shield-account" title="Shift Management"></v-list-item>
+              </template>
+              <v-list-item prepend-icon="mdi mdi-circle-outline" value="Shift List" title="Shift List" to="/shifts"></v-list-item>
+            </v-list-group>
             <v-list-group value="Patrol Management">
               <template v-slot:activator="{ props }">
                 <v-list-item v-bind="props" prepend-icon="mdi mdi-podcast" title="Patrol Management"></v-list-item>
