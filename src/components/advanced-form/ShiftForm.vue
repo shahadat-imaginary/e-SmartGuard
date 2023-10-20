@@ -4,12 +4,13 @@
       <v-col md="7" sm="12">
         <v-card>
           <v-toolbar>
-            <v-toolbar-title>Check Point List</v-toolbar-title>
+            <v-toolbar-title>Shift List</v-toolbar-title>
           </v-toolbar>
 
           <v-card-item>
-            <v-data-table :page="page" :headers="headers" :items="checkPointItems" :items-per-page="itemsPerPage"
+            <v-data-table :page="page" :headers="headers" :items="shiftItems" :items-per-page="itemsPerPage"
               :search="search" hide-default-footer>
+              
               <template v-slot:[`item.actions`]="{ item }">
                 <v-icon size="small" class="me-2" @click="editItem(item.columns.id)">mdi-square-edit-outline</v-icon>
               </template>
@@ -38,18 +39,13 @@
       </v-col>
       <v-col md="5" sm="12">
         <v-card elevation="4">
-          <v-card-title>Check Point Information</v-card-title>
+          <v-card-title>Shift Information</v-card-title>
           <v-card-text class="mt-3">
             <v-sheet class="mx-auto">
               <div v-if="!submitted">
-                <v-form ref="form" @submit.prevent="save" lazy-validation>
-                  <v-text-field v-model="checkItem.name" label="Check Point Name *" variant="outlined"
-                    :rules="checkpointnameRules" required></v-text-field>
-                  <v-text-field v-model="checkItem.latitude" label="Lalitude *" type="number" variant="outlined"
-                    :rules="latitudeRules" required></v-text-field>
-                  <v-text-field v-model="checkItem.longitude" label="Longitude *" type="number" variant="outlined"
-                    :rules="longitudeRules" required></v-text-field>
-
+                <v-form ref="form" @submit.prevent="save" v-model="valid" lazy-validation>
+                  <v-text-field v-model="shift.name" label="Name *" variant="outlined" :rules="nameRules"
+                    required></v-text-field>
                   <div class="d-flex">
                     <v-btn color="success" class="mt-4 mr-2" type="submit">Save</v-btn>
                     <v-btn color="error" class="mt-4" @click="reset">Reset</v-btn>
@@ -64,13 +60,13 @@
             </v-sheet>
           </v-card-text>
         </v-card>
-
       </v-col>
     </v-row>
   </v-container>
 </template>
 
 <script>
+
 import userRequest from '@/axios/request';
 import { debounce } from 'lodash';
 
@@ -82,66 +78,54 @@ export default {
     search: '',
     headers: [
       { key: 'id', title: '#', align: ' d-none' },
-      { key: 'name', title: 'Check Point Name' },
-      { key: 'latitude', title: 'Lalitude' },
-      { key: 'longitude', title: 'Longitude' },
+      { key: 'name', title: 'Name' },
       { key: 'actions', title: 'Actions', sortable: false },
     ],
-    checkPointItems: [],
-    submitted: false,
 
-    checkItem: {
+    shiftItems: [],
+    editing: false,
+    status: ['Active', 'Inactive'],
+
+    shift: {
       id: null,
-      name: '',
-      latitude: null,
-      longitude: null,
+      name: ''
     },
-    defaultcheckItem: {
+
+    defaultShift: {
       id: null,
-      name: '',
-      latitude: null,
-      longitude: null,
-    },
+      name: ''
+    }
   }),
 
   computed: {
-    checkpointnameRules() {
+    nameRules() {
       return [
         (v) => !!v || 'Name is required',
         (v) => v.length >= 3 || 'Name must be at least 3 characters',
       ];
-    },
-    latitudeRules() {
-      return [
-        (v) => !!v || 'Latitude is required',
-      ];
-    },
-    longitudeRules() {
-      return [
-        (v) => !!v || 'Longitude is required',
-      ];
-    },
+    }
   },
 
   //this one will populate new data set when user changes current page.
   watch: {
     page(val) {
       this.page = val;
-      this.retrieveCheckPoint()
+      this.retrieveShifts()
     },
     itemsPerPage(val) {
-      this.itemsPerPage = val;
-      this.retrieveCheckPoint()
+      this.itemPerPage = val;
+      this.retrieveShifts()
     }
   },
 
+
   methods: {
-    // Get all CheckPoints data...
-    retrieveCheckPoint() {
-      userRequest.get(`/checkpoints?PageNumber=${this.page}&PageSize=${this.itemsPerPage}&search=${this.search}`)
+    // Get all Guard data...
+    retrieveShifts() {
+      userRequest.get(`/shifts?PageNumber=${this.page}&PageSize=${this.itemsPerPage}&search=${this.search}`)
         .then((response) => {
-          this.checkPointItems = response.data.data.data;
-          console.log("Get Checkpoint:", response.data);
+          this.shiftItems = response.data.data.data;
+          console.log("Get Shift:", response.data);
           this.page = response.data.data.pageNumber;
           this.itemsPerPage = response.data.data.pageSize;
           this.totalPage = response.data.data.pageCount;
@@ -151,11 +135,12 @@ export default {
         });
     },
 
-    // Edit CheckPoints data...
+    // Edit Guard data...
     editItem(id) {
-      userRequest.get(`/checkpoints/${id}`)
+      this.editing = true;
+      userRequest.get(`/shifts/${id}`)
         .then((response) => {
-          this.checkItem = response.data.data;
+          this.shift = response.data.data;
           console.log("Get details", response.data);
         })
         .catch((e) => {
@@ -163,18 +148,15 @@ export default {
         });
     },
 
-    // Update CheckPoints data...
+    // Update Guard data...
     update(id) {
-      let checkPointUpdate = {
-        name: this.checkItem.name,
-        latitude: this.checkItem.latitude,
-        longitude: this.checkItem.longitude,
+      let shiftUpdate = {
+        name: this.shift.name
       };
-
-      userRequest.put(`/checkpoints/${id}`, checkPointUpdate)
+      this.editing = false;
+      userRequest.put(`/shifts/${id}`, shiftUpdate)
         .then(response => {
-          this.checkItem = response.data.data;
-          console.log("Update Checkpoint:", response.data);
+          this.shift = response.data.data;
           this.refreshList();
         })
         .catch(e => {
@@ -182,29 +164,27 @@ export default {
         });
     },
 
-    // Save CheckPoints data...
+    // Save Guard data...
     async save() {
       const { valid } = await this.$refs.form.validate()
       if (valid) {
-        if (this.checkItem.id) {
+        if (this.shift.id) {
           // If ID is present, update data using the API
-          this.update(this.checkItem.id);
+          this.update(this.shift.id);
           this.submitted = true;
           setTimeout(() => { this.reset(); }, 2000);
         } else {
-          let checkPointCreate = {
-            name: this.checkItem.name,
-            latitude: this.checkItem.latitude,
-            longitude: this.checkItem.longitude,
+          let shiftCreate = {
+            name: this.shift.name
           };
 
-          userRequest.post('/checkpoints', checkPointCreate)
+          userRequest.post('/shifts', shiftCreate)
             .then((response) => {
-              this.checkItem.id = response.data.id;
-              console.log("Create Checkpoint:", response.data);
+              this.shift.id = response.data.id;
+              console.log(response.data);
               this.submitted = true;
               setTimeout(() => {
-                this.retrieveCheckPoint();
+                this.retrieveShifts();
                 this.reset();
               }, 2000);
             })
@@ -218,22 +198,27 @@ export default {
     // Search ...
     updateTextField: debounce(function debounceRead(e) {
       this.search = e;
-      this.retrieveCheckPoint()
+      this.retrieveShifts()
     }, 1000),
+
+    // Pagination ......
+    pageUpdateFunction(newPageNumber) {
+      console.log('Page Update', newPageNumber);
+    },
 
     handlePageChange(page) {
       this.page = page;
-      this.retrieveCheckPoint()
+      this.retrieveShifts()
     },
 
     // Refresh & Reset the List...
     refreshList() {
-      this.retrieveCheckPoint();
-      this.reset();
+      this.retrieveShifts();
+          this.reset();
     },
 
     reset() {
-      this.checkItem = this.defaultcheckItem;
+      this.shift = this.defaultShift;
       this.editing = false;
       this.submitted = false;
       this.$refs.form.reset();
@@ -242,7 +227,7 @@ export default {
   }, //Methods end.....
 
   mounted() {
-    this.retrieveCheckPoint();
+    this.retrieveShifts();
   },
 
 }

@@ -11,6 +11,10 @@
             <v-data-table :page="page" :headers="headers" :items="routeItems" :search="search"
               :items-per-page="itemsPerPage" hide-default-footer>
 
+              <template v-slot:[`item.campus`]="{ item }">
+                {{ (item.columns.campus.name) }}
+              </template>
+
               <template v-slot:[`item.routeCheckpoints`]="{ item }">
                 {{ checkpointData(item.columns.routeCheckpoints) }}
               </template>
@@ -50,6 +54,9 @@
                 <v-form ref="form" @submit.prevent="save" lazy-validation>
                   <v-text-field v-model="route.name" label="Route Name *" variant="outlined"
                     :rules="[v => !!v || 'Route Name is required']" required></v-text-field>
+                  <v-select v-model="selectedCampus" label="Campus *" item-value="id" return-object="" item-title="name"
+                      :items="this.campustItems" :rules="[(v) => !!v || 'Campus is required']" variant="outlined"
+                      required></v-select>
                   <v-checkbox class="justify-center" v-model="route.followSequence" color="deep-purple" required>
                     <template v-slot:label>
                       Follow the sequence
@@ -118,23 +125,28 @@ export default {
     headers: [
       { key: 'id', title: '#', align: ' d-none' },
       { key: 'name', title: 'Route Name' },
+      { key: 'campus', title: 'Campus' },
       { key: 'routeCheckpoints', title: 'Check Point List' },
       { key: 'actions', title: 'Actions', sortable: false },
     ],
 
     routeItems: [],
+    campustItems: [],
     item_checkpoint: [],
     selectedCheckpoint: [],
+    selectedCampus: null,
 
     route: {
       id: null,
       name: '',
+      campusId: null,
       followSequence: false,
       routeCheckpoints: null,
     },
     defaultRoute: {
       id: null,
       name: '',
+      campusId: null,
       followSequence: false,
       routeCheckpoints: null,
     },
@@ -160,13 +172,17 @@ export default {
   //this one will populate new data set when user changes current page.
   watch: {
     page(val) {
-      this.retrieveRoutes(val, this.itemsPerPage, this.search)
+      this.page = val;
+      this.retrieveRoutes()
     },
     itemsPerPage(val) {
-      this.retrieveRoutes(this.page, val, this.search)
+
+      this.itemsPerPage = val;
+      this.retrieveRoutes()
     },
     searchCheckpoint(val) {
       val && val !== this.selectedCheckpoint && this.querySelections(val)
+      this.retrieveRoutes()
     },
   },
 
@@ -303,20 +319,168 @@ export default {
         }
       }
     },
+  },
+
+
+  methods: {
+    retrieveCampuses() {
+      userRequest.get(`/campuses`)
+        .then((response) => {
+          this.campustItems = response.data.data.data;
+        })
+        .catch((e) => {
+          console.log(e);
+        });
+    },
+    // Get All Route Items...
+    retrieveRoutes() {
+      userRequest.get(`/routes?PageNumber=${this.page}&PageSize=${this.itemsPerPage}&search=${this.search}`)
+        .then((response) => {
+          this.routeItems = response.data.data.data;
+          this.page = response.data.data.pageNumber;
+          this.itemsPerPage = response.data.data.pageSize;
+          this.totalPage = response.data.data.pageCount;
+        })
+        .catch((e) => {
+          console.log(e);
+        });
+    },
+
+    // Get All CheckPoint Items...
+    retrieveCheckpoints(search) {
+      userRequest.get(`/checkpoints?search=${search}`)
+        .then((response) => {
+          this.item_checkpoint = response.data.data.data;
+        })
+        .catch((e) => {
+          console.log(e);
+        });
+    },
+
+    // Search ....
+    querySelections: debounce(function debounceRead(e) {
+      this.retrieveCheckpoints(e)
+    }, 1000),
+
+    // Add selectedCheckpoint & expectedTime Input Field...
+    addInputField() {
+      this.inputFields.push({
+        selectedCheckpoint: [],
+        expectedTime: null,
+      });
+    },
+
+    // Remove selectedCheckpoint & expectedTime Input Field...
+    removeInputFields(index) {
+      this.inputFields.splice(index, 1);
+    },
+
+    // Edit Route Items...
+    editItem(id) {
+      userRequest.get(`/routes/${id}`)
+        .then((response) => {
+          this.route = response.data.data;
+          this.selectedCampus = response.data.data.campus;
+          console.log("get details route edit", response.data.data.routeCheckpoints);
+          // let checkedArr = []
+          const updatedData = response.data.data.routeCheckpoints.map((o) => {
+            let obj = { selectedCheckpoint: o.checkpoint, expectedTime: o.expectedTime }
+            return obj
+          })
+          this.inputFields = updatedData
+
+        })
+        .catch((e) => {
+          console.log(e);
+        });
 
     // Search ....
     updateTextField: debounce(function debounceRead(e) {
       this.retrieveRoutes(this.page, this.itemsPerPage, e)
     }, 1000),
-
-    // Pagination ......
-    pageUpdateFunction(newPageNumber) {
-      console.log('Page Update', newPageNumber);
-      // handle other axios request here and update varibles
-    },
     handlePageChange(page) {
       console.log("HandlePage", page)
       this.retrieveRoutes(page, this.itemsPerPage, this.search)
+    },
+
+    // Update Route Items...
+    update(id) {
+      let routeCheckpointsArr = this.inputFields.map((o) => {
+        let obj = {
+          checkpointId: o.selectedCheckpoint.id,
+          ExpectedTime: o.expectedTime,
+        }
+        return obj
+      })
+      let routeUpdate = {
+        name: this.route.name,
+        followSequence: this.route.followSequence,
+        routeCheckpoints: routeCheckpointsArr,
+      };
+      userRequest.put(`/routes/${id}`, routeUpdate)
+        .then(response => {
+          this.route = response.data.data;
+          console.log(response.data);
+          this.inputFields = [{ selectedCheckpoint: null, expectedTime: null, }];
+          this.refreshList();
+        })
+        .catch(e => {
+          console.log(e);
+        });
+    },
+
+    // Save Route Items...
+    async save() {
+      const { valid } = await this.$refs.form.validate();
+      if (valid) {
+        if (this.route.id) {
+          // If ID is present, update data using the API
+          this.update(this.route.id);
+          this.submitted = true;
+          setTimeout(() => { this.reset(); }, 2000);
+        } else {
+
+          let routeCheckpointsArr = this.inputFields.map((o) => {
+            let obj = {
+              checkpointId: o.selectedCheckpoint.id,
+              ExpectedTime: o.expectedTime
+            }
+            return obj
+          })
+
+          let routeCreate = {
+            name: this.route.name,
+            campusId: this.selectedCampus.id,
+            followSequence: this.route.followSequence,
+            routeCheckpoints: routeCheckpointsArr
+          };
+          userRequest.post('/routes', routeCreate)
+            .then((response) => {
+              this.route.id = response.data.id;
+              console.log(response.data);
+              this.submitted = true;
+              setTimeout(() => {
+                this.retrieveRoutes();
+                this.reset();
+              }, 2000);
+              this.selectedCheckpoint = null;
+            })
+            .catch((e) => {
+              console.log(e);
+            });
+        }
+      }
+    },
+
+    // Search ....
+    updateTextField: debounce(function debounceRead(e) {
+      this.search = e;
+      this.retrieveRoutes()
+    }, 1000),
+
+    handlePageChange(page) {
+      this.page = page;
+      this.retrieveRoutes()
     },
 
     checkpointData(arr) {
@@ -337,6 +501,7 @@ export default {
     reset() {
       this.route = this.defaultRoute;
       this.submitted = false;
+      this.selectedCampus = null;
       this.inputFields = [{
         selectedCheckpoint: null,
         expectedTime: null,
@@ -347,7 +512,8 @@ export default {
   },
 
   mounted() {
-    this.retrieveRoutes(this.page, this.itemsPerPage, this.search);
+    this.retrieveRoutes();
+    this.retrieveCampuses();
     this.retrieveCheckpoints(this.searchCheckpoint);
   },
 

@@ -1,9 +1,10 @@
 import axios from "axios";
-const baseURL = 'http://utemguard-001-site1.dtempurl.com/api';
+
+const baseURL = 'https://localhost:7082/api';
 const refreshURL = "/auth/api/token/refresh/";
 
 const axiosInstance = axios.create({
-  baseURL: 'http://utemguard-001-site1.dtempurl.com/api',
+  baseURL: 'https://localhost:7082/api',
 });
 
 const request = () => {

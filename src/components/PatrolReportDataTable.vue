@@ -157,7 +157,8 @@ export default {
     }, 1000),
 
     downloadExcel() {
-      window.open(`http://utemguard-001-site1.dtempurl.com/api/patrols/download-excel?startdate=${this.startdate}&enddate=${this.enddate}&status=${this.selectedStatus}`, '_blank', 'noreferrer');
+      window.open('https://localhost:7082/api/patrols/download-excel', '_blank', 'noreferrer');
+
       // userRequest.get('/patrols/download-excel')
       //   .then((response) => {
 

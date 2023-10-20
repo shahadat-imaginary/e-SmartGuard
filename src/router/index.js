@@ -64,6 +64,23 @@ const routes = [
         component: () => import('@/views/Guard-form-view.vue'),
       },
       {
+        path: '/campuses',
+        name: 'Campus Form',
+        // component: Guard FormVue,
+        component: () => import('@/views/Campus-form-view.vue'),
+      },
+      {
+        path: '/shifts',
+        name: 'Shift Form',
+        // component: Guard FormVue,
+        component: () => import('@/views/Shift-form-view.vue'),
+      },
+      {
+        path: '/times',
+        name: 'Time Form',
+        component: () => import('@/views/Time-form-view.vue'),
+      },
+      {
         path: '/guard-password-change',
         name: 'Guard Password Change Form',
         // component: Guard Password Change Form Vue,
