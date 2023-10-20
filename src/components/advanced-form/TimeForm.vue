@@ -4,19 +4,15 @@
       <v-col md="7" sm="12">
         <v-card>
           <v-toolbar>
-            <v-toolbar-title>Route List</v-toolbar-title>
+            <v-toolbar-title>Time List</v-toolbar-title>
           </v-toolbar>
 
           <v-card-item>
-            <v-data-table :page="page" :headers="headers" :items="routeItems" :search="search"
+            <v-data-table :page="page" :headers="headers" :items="timeItems" :search="search"
               :items-per-page="itemsPerPage" hide-default-footer>
 
-              <template v-slot:[`item.campus`]="{ item }">
-                {{ (item.columns.campus.name) }}
-              </template>
-
-              <template v-slot:[`item.routeCheckpoints`]="{ item }">
-                {{ checkpointData(item.columns.routeCheckpoints) }}
+              <template v-slot:[`item.timeScheduleDetails`]="{ item }">
+                {{ timeData(item.columns.timeScheduleDetails) }}
               </template>
 
               <template v-slot:[`item.actions`]="{ item }">
@@ -47,37 +43,22 @@
       </v-col>
       <v-col md="5" sm="12">
         <v-card elevation="4">
-          <v-card-title>Route Information</v-card-title>
+          <v-card-title>Time Information</v-card-title>
           <v-card-text class="mt-3">
             <v-sheet class="mx-auto">
               <div v-if="!submitted">
                 <v-form ref="form" @submit.prevent="save" lazy-validation>
-                  <v-text-field v-model="route.name" label="Route Name *" variant="outlined"
-                    :rules="[v => !!v || 'Route Name is required']" required></v-text-field>
-                  
-                  <v-select v-model="selectedCampus" label="Campus *" item-value="id" return-object="" item-title="name"
-                      :items="this.campustItems" :rules="[(v) => !!v || 'Campus is required']" variant="outlined"
-                      required></v-select>
-                  <v-checkbox class="justify-center" v-model="route.followSequence" color="deep-purple" required>
-                    <template v-slot:label>
-                      Follow the sequence
-                    </template>
-                  </v-checkbox>
+                  <v-text-field v-model="time.name" label="Time Name *" variant="outlined"
+                    :rules="[v => !!v || 'Time Name is required']" required></v-text-field>
                   <div>
                     <v-row>
 
                       <v-col md="10" v-for="(data, index) in inputFields" :key="index">
                         <v-row>
-                          <!-- {{JSON.stringify(this.item_checkpoint)}} -->
                           <v-col md="7">
-                            <v-autocomplete v-model:search="searchCheckpoint" v-model="data.selectedCheckpoint"
-                              label="Check Point *" item-value="id" return-object item-title="name"
-                              :items="this.item_checkpoint" variant="outlined" :rules="[v => !!v || 'Item is required']"
-                              required></v-autocomplete>
-                          </v-col>
-                          <v-col md="3">
-                            <v-text-field v-model="data.expectedTime" label="ExpectedTime" type="number" :rules="timeRules"
-                              variant="outlined"></v-text-field>
+                            <v-text-field v-model="data.selectedTime" type="time" label="Time *"
+                            :rules="[v => !!v || 'Time is required']" variant="outlined" required></v-text-field>
+                  
                           </v-col>
                           <v-col md="2">
                             <v-btn v-if="inputFields.length > 1" @click="removeInputFields(index)" color="error" outlined
@@ -121,43 +102,32 @@ export default {
     itemsPerPage: 10,
     totalPage: 1,
     search: '',
-    searchCheckpoint: '',
+    searchTime: '',
     submitted: false,
     headers: [
       { key: 'id', title: '#', align: ' d-none' },
       { key: 'name', title: 'Route Name' },
-      { key: 'campus', title: 'Campus' },
-      { key: 'routeCheckpoints', title: 'Check Point List' },
+      { key: 'timeScheduleDetails', title: 'Time List' },
       { key: 'actions', title: 'Actions', sortable: false },
     ],
 
-    routeItems: [],
-    campustItems: [],
-    item_checkpoint: [],
-    selectedCheckpoint: [],
-    selectedCampus: null,
+    timeItems: [],
 
-    route: {
+    time: {
       id: null,
       name: '',
-      campusId: null,
-      followSequence: false,
-      routeCheckpoints: null,
+      timeScheduleDetails: null,
     },
-    defaultRoute: {
+    defaultTime: {
       id: null,
       name: '',
-      campusId: null,
-      followSequence: false,
-      routeCheckpoints: null,
+      timeScheduleDetails: null,
     },
     inputFields: [
       {
-        selectedCheckpoint: null,
-        expectedTime: null,
+        selectedTime: null,
       },
-    ],
-
+    ]
   }),
 
   computed: {
@@ -180,26 +150,18 @@ export default {
       this.itemsPerPage = val;
       this.retrieveRoutes()
     },
-    searchCheckpoint(val) {
-      val && val !== this.selectedCheckpoint && this.querySelections(val)
+    searchTime(val) {
+      val && val !== this.selectedTime && this.querySelections(val)
     },
   },
 
   methods: {
-    retrieveCampuses() {
-      userRequest.get(`/campuses`)
-        .then((response) => {
-          this.campustItems = response.data.data.data;
-        })
-        .catch((e) => {
-          console.log(e);
-        });
-    },
     // Get All Route Items...
-    retrieveRoutes() {
-      userRequest.get(`/routes?PageNumber=${this.page}&PageSize=${this.itemsPerPage}&search=${this.search}`)
+    retrieveTimes() {
+      userRequest.get(`/timeschedules?PageNumber=${this.page}&PageSize=${this.itemsPerPage}&search=${this.search}`)
         .then((response) => {
-          this.routeItems = response.data.data.data;
+          this.timeItems = response.data.data.data;
+          console.log("get", response.data);
           this.page = response.data.data.pageNumber;
           this.itemsPerPage = response.data.data.pageSize;
           this.totalPage = response.data.data.pageCount;
@@ -209,27 +171,10 @@ export default {
         });
     },
 
-    // Get All CheckPoint Items...
-    retrieveCheckpoints(search) {
-      userRequest.get(`/checkpoints?search=${search}`)
-        .then((response) => {
-          this.item_checkpoint = response.data.data.data;
-        })
-        .catch((e) => {
-          console.log(e);
-        });
-    },
-
-    // Search ....
-    querySelections: debounce(function debounceRead(e) {
-      this.retrieveCheckpoints(e)
-    }, 1000),
-
     // Add selectedCheckpoint & expectedTime Input Field...
     addInputField() {
       this.inputFields.push({
-        selectedCheckpoint: [],
-        expectedTime: null,
+        selectedTime: null,
       });
     },
 
@@ -240,14 +185,13 @@ export default {
 
     // Edit Route Items...
     editItem(id) {
-      userRequest.get(`/routes/${id}`)
+      userRequest.get(`/timeschedules/${id}`)
         .then((response) => {
-          this.route = response.data.data;
-          this.selectedCampus = response.data.data.campus;
-          console.log("get details route edit", response.data.data.routeCheckpoints);
+          this.time = response.data.data;
+          console.log("get details route edit", response.data.data.timeScheduleDetails);
           // let checkedArr = []
-          const updatedData = response.data.data.routeCheckpoints.map((o) => {
-            let obj = { selectedCheckpoint: o.checkpoint, expectedTime: o.expectedTime }
+          const updatedData = response.data.data.timeScheduleDetails.map((o) => {
+            let obj = { selectedTime: o.time }
             return obj
           })
           this.inputFields = updatedData
@@ -260,23 +204,20 @@ export default {
 
     // Update Route Items...
     update(id) {
-      let routeCheckpointsArr = this.inputFields.map((o) => {
+      let timesArr = this.inputFields.map((o) => {
         let obj = {
-          checkpointId: o.selectedCheckpoint.id,
-          ExpectedTime: o.expectedTime,
+          time: o.selectedTime,
         }
         return obj
       })
-      let routeUpdate = {
-        name: this.route.name,
-        followSequence: this.route.followSequence,
-        routeCheckpoints: routeCheckpointsArr,
+      let timeUpdate = {
+        name: this.time.name,
+        timeScheduleDetails: timesArr,
       };
-      userRequest.put(`/routes/${id}`, routeUpdate)
+      userRequest.put(`/timeschedules/${id}`, timeUpdate)
         .then(response => {
-          this.route = response.data.data;
-          console.log(response.data);
-          this.inputFields = [{ selectedCheckpoint: null, expectedTime: null, }];
+          this.time = response.data.data;
+          this.inputFields = [{ selectedTime: null }];
           this.refreshList();
         })
         .catch(e => {
@@ -288,37 +229,34 @@ export default {
     async save() {
       const { valid } = await this.$refs.form.validate();
       if (valid) {
-        if (this.route.id) {
+        if (this.time.id) {
           // If ID is present, update data using the API
           this.update(this.route.id);
           this.submitted = true;
           setTimeout(() => { this.reset(); }, 2000);
         } else {
-
-          let routeCheckpointsArr = this.inputFields.map((o) => {
+          console.log("asd", this.selectedTime)
+          let timeScheduleDetailsArr = this.inputFields.map((o) => {
             let obj = {
-              checkpointId: o.selectedCheckpoint.id,
-              ExpectedTime: o.expectedTime
+              time: o.selectedTime + ":00"
             }
             return obj
           })
 
-          let routeCreate = {
-            name: this.route.name,
-            campusId: this.selectedCampus.id,
-            followSequence: this.route.followSequence,
-            routeCheckpoints: routeCheckpointsArr
+          let timeCreate = {
+            name: this.time.name,
+            timeScheduleDetails: timeScheduleDetailsArr
           };
-          userRequest.post('/routes', routeCreate)
+
+          userRequest.post('/timeschedules', timeCreate)
             .then((response) => {
-              this.route.id = response.data.id;
-              console.log(response.data);
+              this.time.id = response.data.id;
               this.submitted = true;
               setTimeout(() => {
-                this.retrieveRoutes();
+                this.retrieveTimes();
                 this.reset();
               }, 2000);
-              this.selectedCheckpoint = null;
+              this.searchTime = null;
             })
             .catch((e) => {
               console.log(e);
@@ -332,34 +270,31 @@ export default {
       this.search = e;
       this.retrieveRoutes()
     }, 1000),
-
+    
     handlePageChange(page) {
       this.page = page;
       this.retrieveRoutes()
     },
 
-    checkpointData(arr) {
+    timeData(arr) {
       let checkedArr = []
       const updatedData = arr.map((o) => {
         let obj = { ...o }
-        checkedArr.push(obj.checkpoint.name)
+        checkedArr.push(obj.time)
       })
       return checkedArr.join();
     },
 
     // Refresh & Reset the List...
     refreshList() {
-      this.retrieveRoutes(this.page, this.itemsPerPage, this.search);
-      this.retrieveCheckpoints(this.searchCheckpoint);
+      this.retrieveTimes();
     },
 
     reset() {
       this.route = this.defaultRoute;
       this.submitted = false;
-      this.selectedCampus = null;
       this.inputFields = [{
-        selectedCheckpoint: null,
-        expectedTime: null,
+        selectedTime: null,
       }];
       this.$refs.form.reset()
     },
@@ -367,9 +302,7 @@ export default {
   },
 
   mounted() {
-    this.retrieveRoutes();
-    this.retrieveCampuses();
-    this.retrieveCheckpoints(this.searchCheckpoint);
+    this.retrieveTimes();
   },
 
 }

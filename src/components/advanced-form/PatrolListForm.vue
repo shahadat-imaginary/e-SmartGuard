@@ -172,8 +172,6 @@ export default {
     retrievePatrols(page, itemPerPage, search) {
       userRequest.get(`/patrols?PageNumber=${page}&PageSize=${itemPerPage}&search=${search}`)
         .then((response) => {
-
-          console.log(" data list", response.data.data.data);
           this.patrolItems = response.data.data.data;
 
           this.page = response.data.data.pageNumber;
