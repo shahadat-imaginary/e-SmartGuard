@@ -44,7 +44,7 @@
               <div v-if="!submitted">
                 <v-form ref="form" @submit.prevent="save" lazy-validation>
                   <v-text-field v-model="user.name" label="User Name *" variant="outlined" disabled></v-text-field>
-                  <v-text-field v-model="user.phoneNumber" label="Mobile No. *" :type="Number" variant="outlined"
+                  <v-text-field v-model="user.phoneNumber" label="Mobile No. *" type="number" variant="outlined"
                     disabled></v-text-field>
                   <v-text-field v-model="user.position" label="Position *" variant="outlined" disabled></v-text-field>
                   <v-text-field v-model="user.email" label="Email" type="email" variant="outlined"
@@ -227,7 +227,7 @@ export default {
 
     // Refresh & Reset the List...
     refreshList() {
-      this.retrieveUsers();
+      this.retrieveUsers(this.page, this.itemsPerPage, this.search);
     },
 
     reset() {

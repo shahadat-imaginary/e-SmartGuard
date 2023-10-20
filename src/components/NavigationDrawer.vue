@@ -50,14 +50,13 @@
                 <v-list-item v-bind="props" prepend-icon="mdi mdi-folder-open" title="Reports"></v-list-item>
               </template>
               <v-list-item prepend-icon="mdi mdi-circle-outline" value="Patrols Report" title="Patrols Report" to="/patrol-report"></v-list-item>
+              <v-list-item prepend-icon="mdi mdi-circle-outline" value="Total Guard Chart" title="All Guard Chart" to="/patrol-total-guard-chart"></v-list-item>
+              <v-list-item prepend-icon="mdi mdi-circle-outline" value="Single Guard Chart" title="Single Guard Chart" to="/patrol-single-guard-chart"></v-list-item>
+              <v-list-item prepend-icon="mdi mdi-circle-outline" value="Total Route Chart" title="All Route Chart" to="/patrol-total-route-chart"></v-list-item>
+              <v-list-item prepend-icon="mdi mdi-circle-outline" value="Single Route Chart" title="Single Route Chart" to="/patrol-single-route-chart"></v-list-item>
+              <v-list-item prepend-icon="mdi mdi-circle-outline" value="Total Checkpoint Chart" title="All Checkpoint Chart" to="/patrol-total-checkpoint-chart"></v-list-item>
+              <v-list-item prepend-icon="mdi mdi-circle-outline" value="Single Checkpoint Chart" title="Single Checkpoint Chart" to="/patrol-single-checkpoint-chart"></v-list-item>
             </v-list-group>
-            <!-- <v-list-group value="Administrator">
-              <template v-slot:activator="{ props }">
-                <v-list-item v-bind="props" prepend-icon="mdi mdi-cogs" title="Administrator"></v-list-item>
-              </template>
-              <v-list-item prepend-icon="mdi mdi-circle-outline" value="User Access" title="User Access"></v-list-item>
-            </v-list-group> -->
-
           </v-list>
       </v-navigation-drawer>
 

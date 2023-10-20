@@ -46,15 +46,16 @@
           <v-card-text class="mt-3">
             <v-sheet class="mx-auto">
               <div v-if="!submitted">
-                <v-form ref="form" @submit.prevent="save" v-model="valid" lazy-validation>
+                <v-form ref="form" @submit.prevent="save" lazy-validation>
                   <v-text-field v-model="user.name" label="Name *" variant="outlined" :rules="nameRules"
                     required></v-text-field>
-                  <v-text-field v-model="user.phoneNumber" label="Mobile No. *" :type="Number" variant="outlined"
+                  <v-text-field v-model="user.phoneNumber" label="Mobile No. *" type="number" variant="outlined"
                     :rules="phoneRules" required></v-text-field>
                   <v-text-field v-model="user.email" label="Email" type="email" variant="outlined" :rules="emailRules"
                     required></v-text-field>
-                  <v-select v-model="selectedSupervisor" label="Supervisor" item-value="id" return-object=""
-                    item-title="name" :items="this.items_supervisor" variant="outlined" required></v-select>
+                  <v-autocomplete v-model:search="searchSupervisor" v-model="selectedSupervisor" label="Supervisor"
+                    item-value="id" return-object="" item-title="name" :items="this.items_supervisor" variant="outlined"
+                    required></v-autocomplete>
                   <div v-if="!editing">
                     <v-text-field label="Password" v-model="user.password" type="password" variant="outlined"
                       :rules="passwordRules" required></v-text-field>
@@ -96,6 +97,7 @@ export default {
     itemsPerPage: 10,
     totalPage: 1,
     search: '',
+    searchSupervisor: '',
     headers: [
       { key: 'id', title: '#', align: ' d-none' },
       { key: 'name', title: 'Name' },
@@ -110,6 +112,7 @@ export default {
     editing: false,
     status: ['Active', 'Inactive'],
     selectedSupervisor: [],
+    submitted: false,
 
     user: {
       id: null,
@@ -145,7 +148,7 @@ export default {
     phoneRules() {
       return [
         (v) => !!v || 'Number is required',
-        (v) => /^(01){1}[3-9]{1}\d{8}$/.test(v) || 'Phone Number must be at least 11 characters',
+        (v) => /^(60){1}\d{9}$/.test(v) || 'Phone Number must be 11 characters starts with 60',
       ];
     },
     emailRules() {
@@ -175,7 +178,10 @@ export default {
     },
     itemsPerPage(val) {
       this.retrieveUsers(this.page, val, this.search)
-    }
+    },
+    searchSupervisor(val) {
+      val && val !== this.selectedSupervisor && this.querySelections(val)
+    },
   },
 
 
@@ -196,8 +202,8 @@ export default {
     },
 
     // Get Supervisor data...
-    retrieveSupervisor() {
-      userRequest.get('/supervisors')
+    retrieveSupervisor(search) {
+      userRequest.get(`/supervisors?search=${search}`)
         .then((response) => {
           this.items_supervisor = response.data.data.data;
           console.log("Get Supervisor Details", response.data);
@@ -206,6 +212,11 @@ export default {
           console.log(e);
         });
     },
+
+    // Search Guards....
+    querySelections: debounce(function debounceRead(e) {
+      this.retrieveSupervisor(e)
+    }, 1000),
 
     // Edit Guard data...
     editItem(id) {
@@ -297,7 +308,7 @@ export default {
     // Refresh & Reset the List...
     refreshList() {
       this.retrieveUsers(this.page, this.itemsPerPage, this.search);
-      this.retrieveSupervisor();
+      this.retrieveSupervisor(this.search);
     },
 
     reset() {
@@ -311,7 +322,7 @@ export default {
 
   mounted() {
     this.retrieveUsers(this.page, this.itemsPerPage, this.search);
-    this.retrieveSupervisor();
+    this.retrieveSupervisor(this.search);
   },
 
 }

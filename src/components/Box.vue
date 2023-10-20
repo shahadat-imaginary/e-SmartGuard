@@ -67,7 +67,7 @@
       </v-col>
     </v-row>
     <v-row>
-      <v-col md="3">
+      <v-col md="4">
         <v-card class="bg-white">
           <div class="d-flex flex-no-wrap">
             <v-avatar class="ma-2" size="54" rounded="0" color="success">
@@ -82,7 +82,7 @@
           </div>
         </v-card>
       </v-col>
-      <v-col md="3">
+      <v-col md="4">
         <v-card class="bg-white">
           <div class="d-flex flex-no-wrap">
             <v-avatar class="ma-2" size="54" rounded="0" color="info">
@@ -97,7 +97,7 @@
           </div>
         </v-card>
       </v-col>
-      <v-col md="3">
+      <!-- <v-col md="3">
         <v-card>
           <div class="d-flex flex-no-wrap">
             <v-avatar class="ma-2" size="54" rounded="0" color="warning">
@@ -111,8 +111,8 @@
             </div>
           </div>
         </v-card>
-      </v-col>
-      <v-col md="3">
+      </v-col> -->
+      <v-col md="4">
         <v-card>
           <div class="d-flex flex-no-wrap">
             <v-avatar class="ma-2" size="54" rounded="0" color="error">

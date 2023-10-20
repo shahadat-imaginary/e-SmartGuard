@@ -49,7 +49,7 @@
               <div v-if="!submitted">
                 <v-form ref="form" @submit.prevent="save" lazy-validation>
                   <v-text-field v-model="user.name" label="Name *" variant="outlined" required disabled></v-text-field>
-                  <v-text-field v-model="user.phoneNumber" label="Mobile No. *" :type="Number" variant="outlined" required
+                  <v-text-field v-model="user.phoneNumber" label="Mobile No. *" type="number" variant="outlined" required
                     disabled></v-text-field>
                   <v-text-field v-model="user.email" label="Email" type="email" variant="outlined" required
                     disabled></v-text-field>
@@ -105,6 +105,7 @@ export default {
 
     status: ['Active', 'Inactive'],
     selectedSupervisor: [],
+    submitted: false,
 
     user: {
       id: null,
@@ -242,7 +243,7 @@ export default {
     // Refresh & Reset the List...
     refreshList() {
       this.retrieveUsers(this.page, this.itemsPerPage, this.search);
-      this.retrieveSupervisor();
+      this.retrieveSupervisor(this.search);
     },
 
     reset() {
@@ -256,7 +257,7 @@ export default {
 
   mounted() {
     this.retrieveUsers(this.page, this.itemsPerPage, this.search);
-    this.retrieveSupervisor();
+    this.retrieveSupervisor(this.search);
   },
 }
 </script>

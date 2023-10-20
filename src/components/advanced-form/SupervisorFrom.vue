@@ -46,7 +46,7 @@
                 <v-form ref="form" @submit.prevent="save" lazy-validation>
                   <v-text-field v-model="user.name" label="Name *" variant="outlined" :rules="nameRules"
                     required></v-text-field>
-                  <v-text-field v-model="user.phoneNumber" label="Mobile No. *" :type="Number" variant="outlined"
+                  <v-text-field v-model="user.phoneNumber" label="Mobile No. *" type="number" variant="outlined"
                     :rules="phoneRules" required></v-text-field>
                   <v-text-field v-model="user.email" label="Email" type="email" variant="outlined" :rules="emailRules"
                     required></v-text-field>
@@ -103,6 +103,7 @@ export default {
     userItems: [],
     editing: false,
     status: ['Active', 'Inactive'],
+    submitted: false,
 
     user: {
       id: null,
@@ -122,7 +123,6 @@ export default {
       confirmPassword: '',
       status: '',
     },
-    submitted: false,
   }),
 
   computed: {
@@ -135,7 +135,7 @@ export default {
     phoneRules() {
       return [
         (v) => !!v || 'Number is required',
-        (v) => /^(01){1}[3-9]{1}\d{8}$/.test(v) || 'Phone Number must be at least 11 characters',
+        (v) => /^(60){1}\d{9}$/.test(v) || 'Phone Number must be 11 characters starts with 60',
       ];
     },
     emailRules() {

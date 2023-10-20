@@ -1,21 +1,18 @@
 <template>
-  <div style="align-items: center;
-    background-color: #e9ecef;
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
-    justify-content: center;">
-    <v-card class="mx-auto pa-4" style="max-width: 360px;">
+  <div class="d-flex align-center justify-center flex-column" style="
+    background-color: #e9ecef; height: 100vh;">
+    <v-card class="mx-auto pa-4">
       <v-contain style="height: 163px;">
         <v-img cover src="../assets/logo.webp"></v-img>
       </v-contain>
-      <v-alert color="error" icon="$error" title="Alert title" v-if="errorMessage" type="Error" closable>{{ errorMessage
-      }}</v-alert>
-      <v-form @submit.prevent="login" v-model="isValid" class="pt-4" ref="form" lazy-validation>
+
+      <v-form @submit.prevent="login" class="pt-4" ref="form" lazy-validation @keyup.enter="login">
         <v-text-field append-inner-icon="mdi mdi-account" v-model="email" label="MyKad No." :rules="emailRules"
           variant="outlined" required></v-text-field>
         <v-text-field append-inner-icon="mdi mdi-lock" v-model="password" type="password" label="password"
           :rules="passwordRules" variant="outlined" required></v-text-field>
+          <v-list-subheader color="error" v-if="errorMessage" type="Error">{{errorMessage}}</v-list-subheader>
+
         <v-checkbox class="justify-center" v-model="agreement" :rules="[v => !!v || 'You must agree to continue!']"
           color="deep-purple" required>
           <template v-slot:label>
@@ -43,6 +40,7 @@ export default {
     isLoading: false,
     agreement: false,
     errorMessage: '',
+    submit: false,
   }),
   computed: {
     emailRules() {
@@ -68,8 +66,11 @@ export default {
         };
 
         try {
+          this.isLoading = true;
           // Replace 'api-url' with the actual URL of your authentication endpoint.
+
           const { data } = await axios.post('https://localhost:7082/api/users/login', credentials);
+
           console.log('test:', data);
 
           // Assuming the API returns a token in the response data upon successful authentication.
@@ -87,6 +88,9 @@ export default {
           console.error('Login failed:', error);
           // Handle login error here, such as showing an error message to the user.
           this.errorMessage = 'Invalid credentials. Please try again.';
+        }
+        finally {
+          this.isLoading = false;
         }
       }
     },

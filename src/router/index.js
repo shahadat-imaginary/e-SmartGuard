@@ -110,6 +110,36 @@ const routes = [
         // component: Patrol Report,
         component: () => import('@/views/Patrol-report-view.vue'),
       },
+      {
+        path: '/patrol-total-guard-chart',
+        name: 'Total Guard Chart',
+        component: () => import('@/views/Total-guard-chart-view.vue'),
+      },
+      {
+        path: '/patrol-single-guard-chart',
+        name: 'Single Guard Chart',
+        component: () => import('@/views/Single-guard-chart-view.vue'),
+      },
+      {
+        path: '/patrol-total-route-chart',
+        name: 'All Route Chart',
+        component: () => import('@/views/Total-route-chart-view.vue'),
+      },
+      {
+        path: '/patrol-single-route-chart',
+        name: 'Single Route Chart',
+        component: () => import('@/views/Single-route-chart-view.vue'),
+      },
+      {
+        path: '/patrol-total-checkpoint-chart',
+        name: 'All Checkpoint Chart',
+        component: () => import('@/views/Total-checkpoint-chart-view.vue'),
+      },
+      {
+        path: '/patrol-single-checkpoint-chart',
+        name: 'Single Checkpoint Chart',
+        component: () => import('@/views/Single-checkpoint-chart-view.vue'),
+      }
     ],
   },
 ]
@@ -117,6 +147,12 @@ const routes = [
 const router = createRouter({
   history: createWebHistory(process.env.BASE_URL),
   routes,
+})
+
+router.onError((error, to) => {
+  if (error.message.includes('Failed to fetch dynamically imported module') || error.message.includes("Importing a module script failed")) {
+    window.location = to.fullPath
+  }
 })
 
 export default router
