@@ -393,7 +393,7 @@ export default {
         .catch((e) => {
           console.log(e);
         });
-
+      },
     // Search ....
     updateTextField: debounce(function debounceRead(e) {
       this.retrieveRoutes(this.page, this.itemsPerPage, e)
@@ -516,7 +516,6 @@ export default {
     this.retrieveCampuses();
     this.retrieveCheckpoints(this.searchCheckpoint);
   },
-
 }
 </script>
 

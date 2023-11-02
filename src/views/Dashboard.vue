@@ -5,11 +5,11 @@
         <Breadcrumbs />
         <Box />
         <v-row>
-            <v-col md="6" sm="12">
+            <v-col md="12" sm="12">
               <MainCampus />
             </v-col>
-            <v-col md="6" sm="12">
-              <TechCampus />
+            <v-col md="12" sm="12">
+              <!-- <TechCampus /> -->
             </v-col>
           </v-row>
           <PatrolReportDataTable />
