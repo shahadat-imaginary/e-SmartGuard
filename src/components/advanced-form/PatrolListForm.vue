@@ -89,6 +89,7 @@
                   <v-autocomplete v-model:search="searchShift" v-model="selectedShift" label="Shift *"
                     item-value="id" return-object="" item-title="name" :items="this.shiftItems"
                     :rules="[(v) => !!v || 'Shift is required']" variant="outlined" required></v-autocomplete>
+                  <v-text-field v-if="isShiftSelected" readonly>{{ selectedShift.start }} - {{ selectedShift.end }}</v-text-field>
                   <v-autocomplete v-model:search="searchTime" v-model="selectedTime" label="Time *"
                     item-value="id" return-object="" item-title="name" :items="this.timeItems"
                     :rules="[(v) => !!v || 'Time is required']" variant="outlined" required></v-autocomplete>
@@ -206,6 +207,7 @@ export default {
     shiftItems: [],
     selectedShift: [],
     searchShift: '',
+    isShiftSelected: false,
 
     timeItems: [],
     selectedTime: [],
@@ -272,9 +274,19 @@ export default {
     searchRoute(val) {
       val && val !== this.selectedRoute && this.querySelectionsRoute(val)
     },
+    searchShift(val) {
+      if (val !== null && val !== "") {
+        this.isShiftSelected = true;
+        this.retrieveShiftDetail()
+      }
+    }
   },
 
   methods: {
+    // retrieve shift detail
+    retrieveShiftDetail() {
+      console.log("Selected shift", this.selectedShift)
+    },
     // Get all Patrols data...
     retrievePatrols() {
       userRequest.get(`/patrols?PageNumber=${this.page}&PageSize=${this.itemsPerPage}&search=${this.searchPatrol}`)

@@ -66,7 +66,7 @@ export default defineComponent({
                 });
         },
         retrieveCampus() {
-            userRequest.get(`/campuses`)
+            userRequest.get(`/all-campuses`)
                 .then((response) => {
                     this.campusItems = response.data.data.data;
                     this.selectedCampus = this.campusItems[0];

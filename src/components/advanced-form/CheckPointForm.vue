@@ -49,7 +49,8 @@
                     :rules="latitudeRules" required></v-text-field>
                   <v-text-field v-model="checkItem.longitude" label="Longitude *" type="number" variant="outlined"
                     :rules="longitudeRules" required></v-text-field>
-
+                  <v-autocomplete v-if="editing" v-model="selectedStatus" label="Status *" item-title="name" :items="this.statusItems"
+                    :rules="[(v) => !!v || 'Status is required']" variant="outlined" required></v-autocomplete>
                   <div class="d-flex">
                     <v-btn color="success" class="mt-4 mr-2" type="submit">Save</v-btn>
                     <v-btn color="error" class="mt-4" @click="reset">Reset</v-btn>
@@ -85,10 +86,15 @@ export default {
       { key: 'name', title: 'Check Point Name' },
       { key: 'latitude', title: 'Lalitude' },
       { key: 'longitude', title: 'Longitude' },
+      { key: 'status', title: 'Status' },
       { key: 'actions', title: 'Actions', sortable: false },
     ],
     checkPointItems: [],
     submitted: false,
+    editing: false,
+
+    selectedStatus: "",
+    statusItems: ["Active", "Inactive"],
 
     checkItem: {
       id: null,
@@ -138,7 +144,7 @@ export default {
   methods: {
     // Get all CheckPoints data...
     retrieveCheckPoint() {
-      userRequest.get(`/checkpoints?PageNumber=${this.page}&PageSize=${this.itemsPerPage}&search=${this.search}`)
+      userRequest.get(`/all-checkpoints?PageNumber=${this.page}&PageSize=${this.itemsPerPage}&search=${this.search}`)
         .then((response) => {
           this.checkPointItems = response.data.data.data;
           console.log("Get Checkpoint:", response.data);
@@ -153,9 +159,11 @@ export default {
 
     // Edit CheckPoints data...
     editItem(id) {
+      this.editing = true;
       userRequest.get(`/checkpoints/${id}`)
         .then((response) => {
           this.checkItem = response.data.data;
+          this.selectedStatus = response.data.data.status;
           console.log("Get details", response.data);
         })
         .catch((e) => {
@@ -169,6 +177,7 @@ export default {
         name: this.checkItem.name,
         latitude: this.checkItem.latitude,
         longitude: this.checkItem.longitude,
+        status: this.selectedStatus
       };
 
       userRequest.put(`/checkpoints/${id}`, checkPointUpdate)
@@ -179,6 +188,9 @@ export default {
         })
         .catch(e => {
           console.log(e);
+        })
+        .finally(() => {
+          this.editing = false;
         });
     },
 
