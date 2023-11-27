@@ -46,6 +46,12 @@
                 <v-form ref="form" @submit.prevent="save" v-model="valid" lazy-validation>
                   <v-text-field v-model="shift.name" label="Name *" variant="outlined" :rules="nameRules"
                     required></v-text-field>
+                  <v-text-field v-model="shift.start" type="time" label="Start time *"
+                    :rules="[v => !!v || 'Start time is required']" variant="outlined" required></v-text-field>
+                  <v-text-field v-model="shift.end" type="time" label="End time *"
+                    :rules="[v => !!v || 'End time is required']" variant="outlined" required></v-text-field>
+                  <v-autocomplete v-if="editing" v-model="selectedStatus" label="Status *" item-title="name" :items="this.statusItems"
+                    :rules="[(v) => !!v || 'Status is required']" variant="outlined" required></v-autocomplete>
                   <div class="d-flex">
                     <v-btn color="success" class="mt-4 mr-2" type="submit">Save</v-btn>
                     <v-btn color="error" class="mt-4" @click="reset">Reset</v-btn>
@@ -79,21 +85,28 @@ export default {
     headers: [
       { key: 'id', title: '#', align: ' d-none' },
       { key: 'name', title: 'Name' },
+      { key: 'start', title: 'Start' },
+      { key: 'end', title: 'End' },
+      { key: 'status', title: 'Status' },
       { key: 'actions', title: 'Actions', sortable: false },
     ],
-
+    selectedStatus: "",
+    statusItems: ["Active", "Inactive"],
     shiftItems: [],
     editing: false,
-    status: ['Active', 'Inactive'],
 
     shift: {
       id: null,
-      name: ''
+      name: '',
+      start: null,
+      end: null
     },
 
     defaultShift: {
       id: null,
-      name: ''
+      name: '',
+      start: null,
+      end: null
     }
   }),
 
@@ -122,7 +135,7 @@ export default {
   methods: {
     // Get all Guard data...
     retrieveShifts() {
-      userRequest.get(`/shifts?PageNumber=${this.page}&PageSize=${this.itemsPerPage}&search=${this.search}`)
+      userRequest.get(`/all-shifts?PageNumber=${this.page}&PageSize=${this.itemsPerPage}&search=${this.search}`)
         .then((response) => {
           this.shiftItems = response.data.data.data;
           console.log("Get Shift:", response.data);
@@ -141,6 +154,7 @@ export default {
       userRequest.get(`/shifts/${id}`)
         .then((response) => {
           this.shift = response.data.data;
+          this.selectedStatus = response.data.data.status;
           console.log("Get details", response.data);
         })
         .catch((e) => {
@@ -151,7 +165,10 @@ export default {
     // Update Guard data...
     update(id) {
       let shiftUpdate = {
-        name: this.shift.name
+        name: this.shift.name,
+        start: this.shift.start,
+        end: this.shift.end,
+        status: this.selectedStatus
       };
       this.editing = false;
       userRequest.put(`/shifts/${id}`, shiftUpdate)
@@ -175,13 +192,14 @@ export default {
           setTimeout(() => { this.reset(); }, 2000);
         } else {
           let shiftCreate = {
-            name: this.shift.name
+            name: this.shift.name,
+            start: this.shift.start,
+            end: this.shift.end
           };
 
           userRequest.post('/shifts', shiftCreate)
             .then((response) => {
               this.shift.id = response.data.id;
-              console.log(response.data);
               this.submitted = true;
               setTimeout(() => {
                 this.retrieveShifts();

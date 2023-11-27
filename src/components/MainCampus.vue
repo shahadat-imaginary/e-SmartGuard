@@ -4,7 +4,9 @@
             <v-col md="12">
                 <v-card>
                     <v-card-item style="background-color: #007bff; color: white;">
-                        Main Campus
+                        <v-select v-model="selectedCampus" label="Campus"  return-object=""
+                            item-title="name" :items="this.campusItems" variant="outlined"
+                            @update:modelValue="updateSelectedCampus" class="pt-2"></v-select>
                     </v-card-item>
                     <v-card-item style="padding: 1.25rem;">
                         <GoogleMap api-key="AIzaSyCKIUGDdYeVXnxzWGRz2vkJ_9l90z6Cb3w" style="width: 100%; height: 500px"
@@ -28,6 +30,12 @@ export default defineComponent({
     components: { GoogleMap, Marker },
     data() {
         return {
+            page: 1,
+            itemsPerPage: 10,
+            totalPage: 1,
+            search: '',
+            campusItems: [],
+            selectedCampus: [],
             center: { lat: 2.317306358694387, lng: 102.32025850270547 },
             position: { lat: 2.317306358694387, lng: 102.32025850270547 },
             items_guard: [],
@@ -36,22 +44,6 @@ export default defineComponent({
             }),
             channel: null,
         };
-    },
-    created() {
-        // const pusher = new Pusher('f6980a548c69f46199ba', {
-        //     cluster: 'ap1',
-        // });
-        // const channel = pusher.subscribe('UTeM-Guard');
-        // var i = 0;
-        // for(; i< this.items_guard.length; i++){
-        //     channel.bind('item.guard.id', (data) => { //guard.activities.5
-        //         if (data.Location != undefined) {
-        //             // this.position = { lat: parseFloat(data.Location.Latitude), lng: parseFloat(data.Location.Longitude) }
-        //             console.log(this.position);
-        //         }
-        //         console.log('Test', data);
-        //     });
-        // }
     },
     methods: {
         // Get All Guards data...
@@ -73,6 +65,27 @@ export default defineComponent({
                     console.log(e);
                 });
         },
+        retrieveCampus() {
+            userRequest.get(`/all-campuses`)
+                .then((response) => {
+                    this.campusItems = response.data.data.data;
+                    this.selectedCampus = this.campusItems[0];
+                    this.center = { lat: parseFloat(response.data.data.latitude), lng: parseFloat(response.data.data.longitude) }
+                    this.position = { lat: parseFloat(response.data.data.latitude), lng: parseFloat(response.data.data.longitude) }
+                })
+                .catch((e) => { 
+                });
+        },
+        updateSelectedCampus() {
+            userRequest.get(`/campuses/${this.selectedCampus.id}`)
+                .then((response) => {
+                    console.log("Get Campus:", response.data.data.latitude);
+                    this.center = { lat: parseFloat(response.data.data.latitude), lng: parseFloat(response.data.data.longitude) }
+                    this.position = { lat: parseFloat(response.data.data.latitude), lng: parseFloat(response.data.data.longitude) }
+                })
+                .catch((e) => { 
+                });
+        }
     },
     // Refresh the List...
     refreshList() {
@@ -81,6 +94,7 @@ export default defineComponent({
 
     mounted() {
         this.retrieveGuard();
+        this.retrieveCampus();
     },
 });
 </script>

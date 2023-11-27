@@ -23,6 +23,18 @@
                 {{ (item.columns.guard.name) }}
               </template>
 
+              <template v-slot:[`item.campus`]="{ item }">
+                {{ (item.columns.route.campus.name) }}
+              </template>
+              
+              <template v-slot:[`item.shift`]="{ item }">
+                {{ (item.columns.shift.name) }}
+              </template>
+              
+              <template v-slot:[`item.timeSchedule`]="{ item }">
+                {{ (item.columns.timeSchedule.name) }}
+              </template>
+
               <template v-slot:[`item.route`]="{ item }">
                 {{ (item.columns.route.name) }}
               </template>
@@ -31,8 +43,8 @@
                 {{ (item.columns.status) }}
               </template>
 
-              <template v-slot:[`item.remarks`]="{ item }">
-                {{ (item.columns.remarks) }}
+              <template v-slot:[`item.actions`]="{ item }">
+                <v-icon size="small" class="me-2" @click="viewItem(item.columns.id)">mdi-eye</v-icon>
               </template>
 
               <template v-slot:bottom>
@@ -58,28 +70,38 @@
           </v-card-item>
         </v-card>
       </v-col>
-      <v-col md="5" sm="12">
+      <v-col v-if="adding" md="5" sm="12">
         <v-card elevation="4">
-          <v-card-title>Patrol Information</v-card-title>
+          <v-card-title>Add Patrol</v-card-title>
           <v-card-text class="mt-3">
             <v-sheet class="mx-auto">
               <div v-if="!submitted">
                 <v-form ref="form" @submit.prevent="save" lazy-validation>
-                  <v-text-field v-model="startdate" type="date" label="Start Date *"
-                    :rules="[v => !!v || 'Start Date is required']" variant="outlined" required></v-text-field>
-                  <v-text-field v-model="startTime" type="time" label="Start Time *"
-                    :rules="[v => !!v || 'Start Time is required']" variant="outlined" required></v-text-field>
-                  <v-text-field v-model="enddate" type="date" label="End Date *"
-                    :rules="[v => !!v || 'End Date is required']" variant="outlined" required></v-text-field>
-                  <v-text-field v-model="endTime" type="time" label="End Time *"
-                    :rules="[v => !!v || 'End Time is required']" variant="outlined" required></v-text-field>
+                  <v-autocomplete v-model:search="searchCampus" v-model="selectedCampus" label="Campus *"
+                    item-value="id" return-object="" item-title="name" :items="this.campusItems"
+                    :rules="[(v) => !!v || 'Campus is required']" variant="outlined" required></v-autocomplete>
                   <v-autocomplete v-model:search="searchGuard" v-model="selectedGuard" label="Guard Name *"
-                    item-value="id" return-object="" item-title="name" :items="this.items_guard"
+                    item-value="id" return-object="" item-title="name" :items="this.guardItems"
                     :rules="[(v) => !!v || 'Guard is required']" variant="outlined" required></v-autocomplete>
                   <v-autocomplete v-model:search="searchRoute" v-model="selectedRoute" label="Route *" item-value="id"
-                    return-object="" item-title="name" :items="this.items_route"
+                    return-object="" item-title="name" :items="this.routeItems"
                     :rules="[(v) => !!v || 'Route is required']" variant="outlined" required></v-autocomplete>
-
+                  <v-autocomplete v-model:search="searchShift" v-model="selectedShift" label="Shift *"
+                    item-value="id" return-object="" item-title="name" :items="this.shiftItems"
+                    :rules="[(v) => !!v || 'Shift is required']" variant="outlined" required></v-autocomplete>
+                  <v-text-field v-if="isShiftSelected" readonly>{{ selectedShift.start }} - {{ selectedShift.end }}</v-text-field>
+                  <v-autocomplete v-model:search="searchTime" v-model="selectedTime" label="Time *"
+                    item-value="id" return-object="" item-title="name" :items="this.timeItems"
+                    :rules="[(v) => !!v || 'Time is required']" variant="outlined" required></v-autocomplete>
+                  <v-text-field v-model="startdate" type="date" label="Start Date *"
+                    :rules="[v => !!v || 'Start Date is required']" variant="outlined" required></v-text-field>
+                  <v-text-field v-model="enddate" type="date" label="End Date *"
+                    :rules="[v => !!v || 'End Date is required']" variant="outlined" required></v-text-field>
+                  <v-checkbox class="justify-center" v-model="timerEnabled" color="deep-purple" required>
+                    <template v-slot:label>
+                      Timer enabled
+                    </template>
+                  </v-checkbox>
                   <div class="d-flex">
                     <v-btn color="success" class="mt-4 mr-2" type="submit">Save</v-btn>
                     <v-btn color="error" class="mt-4" @click="reset">Reset</v-btn>
@@ -91,6 +113,52 @@
                   <v-card-title>Submitted successfully!</v-card-title>
                 </v-card>
               </div>
+            </v-sheet>
+          </v-card-text>
+        </v-card>
+      </v-col>
+
+      <v-col v-if="viewing" md="5" sm="12">
+        <v-card elevation="4">
+          <v-row>
+            <v-col md="8" sm="12">
+              <v-card-title>Patrol Information</v-card-title>
+            </v-col>
+            <v-col md="4" sm="12">
+              <v-btn color="success" class="mt-2" @click="addItem">Add new</v-btn>
+            </v-col>
+          </v-row>
+          
+          <v-card-text class="mt-3">
+            <v-sheet class="mx-auto">
+              <v-container>
+                <v-row>
+                  <v-col md="12" sm="12" class="ma-0 pa-0">
+                    <v-text-field v-model="viewPatrolItem.guard.name" label="Guard" readonly></v-text-field>
+                  </v-col>
+                  <v-col md="12" sm="12" class="ma-0 pa-0">
+                    <v-text-field v-model="viewPatrolItem.campus" label="Campus" readonly></v-text-field>
+                  </v-col>
+                  <v-col md="12" sm="12" class="ma-0 pa-0">
+                    <v-text-field v-model="viewPatrolItem.shift.name" label="Shift" readonly></v-text-field>
+                  </v-col>
+                  <v-col md="12" sm="12" class="ma-0 pa-0">
+                    <v-text-field v-model="viewPatrolItem.time" label="Time" readonly></v-text-field>
+                  </v-col>
+                  <v-col md="12" sm="12" class="ma-0 pa-0">
+                    <v-textarea v-model="viewPatrolItem.route" auto-grow="true" rows="1" label="Route" readonly></v-textarea>
+                  </v-col>
+                  <v-col md="12" sm="12" class="ma-0 pa-0">
+                    <v-text-field v-model="viewPatrolItem.date" label="Date" readonly></v-text-field>
+                  </v-col>
+                  <v-col md="12" sm="12" class="ma-0 pa-0">
+                    <v-text-field v-model="viewPatrolItem.status" label="Status" readonly></v-text-field>
+                  </v-col>
+                  <v-col md="12" sm="12" class="ma-0 pa-0">
+                    <v-text-field v-model="viewPatrolItem.timer" label="Timer" readonly></v-text-field>
+                  </v-col>
+                </v-row>
+              </v-container>
             </v-sheet>
           </v-card-text>
         </v-card>
@@ -111,32 +179,62 @@ export default {
     return { moment };
   },
   data: () => ({
+    viewing: false,
+    adding: true,
     page: 1,
     itemsPerPage: 10,
     totalPage: 1,
-    search: '',
-    searchGuard: '',
-    searchRoute: '',
+    timerEnabled: false,
     headers: [
       { key: 'id', title: '#', align: ' d-none' },
       { key: 'guard', title: 'Guard' },
+      { key: 'campus', title: 'Campus'},
+      { key: 'shift', title: 'Shift' },
+      { key: 'timeSchedule', title: 'Time' },
       { key: 'route', title: 'Route' },
       { key: 'start', title: 'Start' },
       { key: 'end', title: 'End' },
       { key: 'status', title: 'Status' },
-      { key: 'remarks', title: 'Remarks' },
-      // { key: 'actions', title: 'Actions', sortable: false },
+      { key: 'actions', title: 'Actions', sortable: false },
     ],
     patrolItems: [],
-    items_guard: [],
-    items_route: [],
+    searchPatrol: '',
+
+    campusItems: [],
+    selectedCampus: [],
+    searchCampus: '',
+
+    shiftItems: [],
+    selectedShift: [],
+    searchShift: '',
+    isShiftSelected: false,
+
+    timeItems: [],
+    selectedTime: [],
+    searchTime: '',
+
+    guardItems: [],
     selectedGuard: [],
+    searchGuard: '',
+
+    routeItems: [],
     selectedRoute: [],
-    startTime: null,
-    endTime: null,
+    searchRoute: '',
+    
     startdate: null,
     enddate: null,
     submitted: false,
+    
+    viewPatrolItem: {
+      id: null,
+      guard: '',
+      route: '',
+      shift: '',
+      time: '',
+      date: '',
+      status: '',
+      timer: ''
+    },
 
     patrol: {
       id: null,
@@ -163,10 +261,12 @@ export default {
   //this one will populate new data set when user changes current page.
   watch: {
     page(val) {
-      this.retrievePatrols(val, this.itemsPerPage, this.search)
+      this.page = val;
+      this.retrievePatrols()
     },
     itemsPerPage(val) {
-      this.retrievePatrols(this.page, val, this.search)
+      this.itemsPerPage = val;
+      this.retrievePatrols()
     },
     searchGuard(val) {
       val && val !== this.selectedGuard && this.querySelectionsGuard(val)
@@ -174,12 +274,22 @@ export default {
     searchRoute(val) {
       val && val !== this.selectedRoute && this.querySelectionsRoute(val)
     },
+    searchShift(val) {
+      if (val !== null && val !== "") {
+        this.isShiftSelected = true;
+        this.retrieveShiftDetail()
+      }
+    }
   },
 
   methods: {
+    // retrieve shift detail
+    retrieveShiftDetail() {
+      console.log("Selected shift", this.selectedShift)
+    },
     // Get all Patrols data...
-    retrievePatrols(page, itemPerPage, search) {
-      userRequest.get(`/patrols?PageNumber=${page}&PageSize=${itemPerPage}&search=${search}`)
+    retrievePatrols() {
+      userRequest.get(`/patrols?PageNumber=${this.page}&PageSize=${this.itemsPerPage}&search=${this.searchPatrol}`)
         .then((response) => {
           this.patrolItems = response.data.data.data;
 
@@ -193,12 +303,44 @@ export default {
         });
     },
 
+    // Get All Campus data...
+    retrieveCampuses() {
+      userRequest.get(`/campuses`)
+        .then((response) => {
+          this.campusItems = response.data.data.data;
+        })
+        .catch((e) => {
+          console.log(e);
+        });
+    },
+
+    // Get All Time data...
+    retrieveTimes() {
+      userRequest.get(`/timeschedules`)
+        .then((response) => {
+          this.timeItems = response.data.data.data;
+        })
+        .catch((e) => {
+          console.log(e);
+        });
+    },
+
+    // Get All Shift data...
+    retrieveShifts() {
+      userRequest.get(`/shifts`)
+        .then((response) => {
+          this.shiftItems = response.data.data.data;
+        })
+        .catch((e) => {
+          console.log(e);
+        });
+    },
+
     // Get All Guards data...
     retrieveGuard(search) {
-      userRequest.get(`/guards?search=${search}`)
+      userRequest.get(`/guards?search=${this.searchGuard}`)
         .then((response) => {
-          this.items_guard = response.data.data.data;
-          console.log("get Details", response.data);
+          this.guardItems = response.data.data.data;
         })
         .catch((e) => {
           console.log(e);
@@ -212,10 +354,9 @@ export default {
 
     // Get All Routes data...
     retrieveRoute(search) {
-      userRequest.get(`/routes?search=${search}`)
+      userRequest.get(`/routes?search=${this.searchRoute}`)
         .then((response) => {
-          this.items_route = response.data.data.data;
-          console.log("get Details", response.data);
+          this.routeItems = response.data.data.data;
         })
         .catch((e) => {
           console.log(e);
@@ -233,7 +374,6 @@ export default {
       userRequest.get(`/patrols/${id}`)
         .then((response) => {
           this.patrol = response.data.data;
-          console.log("get details", response.data);
           this.startdate = moment(response.data.data.start).format("YYYY-MM-DD")
           this.startTime = moment(response.data.data.start).format("hh:mm")
           this.enddate = moment(response.data.data.end).format("YYYY-MM-DD")
@@ -242,7 +382,7 @@ export default {
           this.selectedRoute = response.data.data.route;
         })
         .catch((e) => {
-          console.log(e);
+          
         });
     },
 
@@ -258,7 +398,7 @@ export default {
       userRequest.put(`/patrols/${id}`, patrolUpdate)
         .then(response => {
           this.patrol = response.data.data;
-          console.log(response.data);
+          
 
           this.startdate = moment(response.data.data.start).format("YYYY-MM-DD")
           this.startTime = moment(response.data.data.start).format("hh:mm")
@@ -286,9 +426,14 @@ export default {
           let patrolCreate = {
             guardId: this.selectedGuard.id,
             routeId: this.selectedRoute.id,
-            start: this.startdate + 'T' + this.startTime + ':00',
-            end: this.enddate + 'T' + this.endTime + ':00',
+            shiftId: this.selectedShift.id,
+            timeScheduleId: this.selectedTime.id,
+            start: this.startdate,
+            end: this.enddate,
+            timerEnabled: this.timerEnabled,
           };
+
+          console.log(patrolCreate);
 
           userRequest.post('/patrols', patrolCreate)
             .then((response) => {
@@ -297,7 +442,7 @@ export default {
               this.submitted = true;
               setTimeout(() => {
                 this.reset();
-                this.retrievePatrols(this.page, this.itemsPerPage, this.search);
+                this.retrievePatrols();
               }, 2000);
               this.selectedGuard = null;
               this.selectedRoute = null;
@@ -309,9 +454,65 @@ export default {
       }
     },
 
+    // Edit Route Items...
+    viewItem(id) {
+      userRequest.get(`/patrols/${id}`)
+        .then((response) => {
+          this.viewPatrolItem = response.data.data;
+          this.viewPatrolItem.campus = response.data.data.route.campus.name;
+          this.viewPatrolItem.route = this.checkpointData(response.data.data.route);
+          this.viewPatrolItem.timeSchedule = response.data.data.timeSchedule;
+          this.viewPatrolItem.time = this.timeScheduleData(response.data.data.timeSchedule);
+          this.viewPatrolItem.date = this.formatTime();
+          this.viewPatrolItem.timer = response.data.data.timerEnabled ? "Enabled" : "Disabled";
+          console.log(response.data.data);
+        })
+        .catch((e) => {
+          console.log(e);
+        })
+        .finally(() => {
+          this.viewing = true;
+          this.adding = false;
+        });
+    },
+
+    checkpointData(route) {
+      console.log("Route", route)
+      let checkedArr = []
+      const updatedData = route.routeCheckpoints.map((o) => {
+        let obj = { ...o }
+        checkedArr.push(obj.checkpoint.name)
+      })
+      return route.name + "(" + checkedArr.join() + ")";
+    },
+
+    timeScheduleData(timeSchedule) {
+      console.log("timeschedule", timeSchedule);
+      let checkedArr = []
+      const updatedData = timeSchedule.timeScheduleDetails.map((o) => {
+        let obj = { ...o }
+        checkedArr.push(obj.time)
+      })
+      console.log("checkedArr", checkedArr.join());
+      return timeSchedule.name + "(" + checkedArr.join() + ")";
+    },
+
+    formatTime() {
+      console.log("Patrol", this.viewPatrolItem)
+      return moment(this.viewPatrolItem.start).format("DD/MM/YYYY") + " - " + moment(this.viewPatrolItem.end).format("DD/MM/YYYY")
+    },
+
+    // Add Route Items...
+    addItem() {
+      this.patrol = this.defaultpatrol;
+      this.viewing = false;
+      this.adding = true;
+    },
+
     // Search ...
     updateTextField: debounce(function debounceRead(e) {
-      this.retrievePatrols(this.page, this.itemsPerPage, e)
+      this.searchPatrol = e;
+      this.retrievePatrols()
     }, 1000),
 
     // Pagination ......
@@ -319,13 +520,16 @@ export default {
       console.log('Page Update', newPageNumber);
     },
     handlePageChange(page) {
-      console.log("HandlePage", page)
-      this.retrievePatrols(page, this.itemsPerPage, this.search)
+      this.page = page;
+      this.retrievePatrols()
     },
 
     // Refresh & Reset the List...
     refreshList() {
-      this.retrievePatrols(this.page, this.itemsPerPage, this.search);
+      this.retrievePatrols();
+      this.retrieveCampuses();
+      this.retrieveShifts();
+      this.retrieveTimes();
       this.retrieveGuard(this.search);
       this.retrieveRoute(this.search);
     },
@@ -337,13 +541,16 @@ export default {
     },
 
     formatDateTime(value) {
-      return moment(value).format("DD/MM/YYYY, hh:mm A")
+      return moment(value).format("DD/MM/YYYY")
     },
 
   }, //methods end.....
 
   mounted() {
-    this.retrievePatrols(this.page, this.itemsPerPage, this.search);
+    this.retrievePatrols();
+    this.retrieveCampuses();
+    this.retrieveShifts();
+    this.retrieveTimes();
     this.retrieveGuard(this.search);
     this.retrieveRoute(this.search);
   },

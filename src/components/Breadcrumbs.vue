@@ -1,7 +1,7 @@
 <template>
-    <v-container>
+    <v-container class="pa-0 ma-0">
         <v-row>
-            <v-col md="12">
+            <v-col md="12" class="pa-1">
               <v-app-bar color="transparent" flat>
                 <v-toolbar-title class="hidden-sm-and-down" style="font-size: 1.6rem; font-weight: 400;" text="Dashboard"/>
                 <v-breadcrumbs :items="items">

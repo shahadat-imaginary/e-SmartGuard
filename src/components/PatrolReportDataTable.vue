@@ -157,7 +157,7 @@ export default {
     }, 1000),
 
     downloadExcel() {
-      window.open('https://localhost:7082/api/patrols/download-excel', '_blank', 'noreferrer');
+      window.open(import.meta.env.VITE_BASE_URL + '/patrols/download-excel', '_blank', 'noreferrer');
 
       // userRequest.get('/patrols/download-excel')
       //   .then((response) => {

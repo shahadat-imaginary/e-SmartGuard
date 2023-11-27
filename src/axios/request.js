@@ -1,10 +1,10 @@
 import axios from "axios";
 
-const baseURL = 'https://localhost:7082/api';
+const baseURL = import.meta.env.VITE_BASE_URL;
 const refreshURL = "/auth/api/token/refresh/";
 
 const axiosInstance = axios.create({
-  baseURL: 'https://localhost:7082/api',
+  baseURL: import.meta.env.VITE_BASE_URL,
 });
 
 const request = () => {

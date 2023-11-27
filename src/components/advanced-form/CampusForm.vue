@@ -50,6 +50,8 @@
                     :rules="latitudeRules" required></v-text-field>
                   <v-text-field v-model="campus.longitude" label="Longitude" type="Number" variant="outlined" :rules="longitudeRules"
                     required></v-text-field>
+                  <v-autocomplete v-if="editing" v-model="selectedStatus" label="Status *" item-title="name" :items="this.statusItems"
+                    :rules="[(v) => !!v || 'Status is required']" variant="outlined" required></v-autocomplete>
                   <div class="d-flex">
                     <v-btn color="success" class="mt-4 mr-2" type="submit">Save</v-btn>
                     <v-btn color="error" class="mt-4" @click="reset">Reset</v-btn>
@@ -85,6 +87,7 @@ export default {
       { key: 'name', title: 'Name' },
       { key: 'latitude', title: 'Latitude.', sortable: false },
       { key: 'longitude', title: 'Longitude', sortable: false },
+      { key: 'status', title: 'Status' },
       { key: 'actions', title: 'Actions', sortable: false },
     ],
 
@@ -105,6 +108,8 @@ export default {
       longitude: null
     },
 
+    selectedStatus: "",
+    statusItems: ["Active", "Inactive"],
   }),
 
   computed: {
@@ -144,7 +149,7 @@ export default {
   methods: {
     // Get all Guard data...
     retrieveCampuses() {
-      userRequest.get(`/campuses?PageNumber=${this.page}&PageSize=${this.itemsPerPage}&search=${this.search}`)
+      userRequest.get(`/all-campuses?PageNumber=${this.page}&PageSize=${this.itemsPerPage}&search=${this.search}`)
         .then((response) => {
           this.campusItems = response.data.data.data;
           console.log("Get Campus:", response.data.data.data);
@@ -163,6 +168,7 @@ export default {
       userRequest.get(`/campuses/${id}`)
         .then((response) => {
           this.campus = response.data.data;
+          this.selectedStatus = response.data.data.status;
           console.log("Get details", response.data);
         })
         .catch((e) => {
@@ -175,7 +181,8 @@ export default {
       let campusUpdate = {
         name: this.campus.name,
         latitude: this.campus.latitude,
-        longitude: this.campus.longitude
+        longitude: this.campus.longitude,
+        status: this.selectedStatus
       };
       this.editing = false;
       userRequest.put(`/campuses/${id}`, campusUpdate)

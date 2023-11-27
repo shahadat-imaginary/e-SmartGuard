@@ -13,7 +13,7 @@
           :rules="passwordRules" variant="outlined" required></v-text-field>
           <v-list-subheader color="error" v-if="errorMessage" type="Error">{{errorMessage}}</v-list-subheader>
 
-        <v-checkbox class="justify-center" v-model="agreement" :rules="[v => !!v || 'You must agree to continue!']"
+        <v-checkbox class="justify-center" v-model="agreement" :rules="[v => !!v || 'Please tick this box to continue']"
           color="deep-purple" required>
           <template v-slot:label>
             Admin Dashboard
@@ -58,6 +58,7 @@ export default {
   },
   methods: {
     async login() {
+      var baseUrl = import.meta.env.VITE_BASE_URL;
       const { valid } = await this.$refs.form.validate();
       if (valid) {
         const credentials = {
@@ -69,9 +70,7 @@ export default {
           this.isLoading = true;
           // Replace 'api-url' with the actual URL of your authentication endpoint.
 
-          const { data } = await axios.post('https://localhost:7082/api/users/login', credentials);
-
-          console.log('test:', data);
+          const { data } = await axios.post(baseUrl + '/users/login', credentials);
 
           // Assuming the API returns a token in the response data upon successful authentication.
           const token = data.data.token;

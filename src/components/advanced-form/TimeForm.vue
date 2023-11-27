@@ -58,7 +58,6 @@
                           <v-col md="7">
                             <v-text-field v-model="data.selectedTime" type="time" label="Time *"
                             :rules="[v => !!v || 'Time is required']" variant="outlined" required></v-text-field>
-                  
                           </v-col>
                           <v-col md="2">
                             <v-btn v-if="inputFields.length > 1" @click="removeInputFields(index)" color="error" outlined
@@ -70,6 +69,10 @@
                         <v-btn @click="addInputField" color="success" icon="mdi-plus-circle" outlined></v-btn>
                       </v-col>
                     </v-row>
+                    
+                    <v-autocomplete v-if="editing" v-model="selectedStatus" label="Status *" item-title="name" :items="this.statusItems"
+                      :rules="[(v) => !!v || 'Status is required']" variant="outlined" required></v-autocomplete>
+                  
                   </div>
 
                   <div class="d-flex">
@@ -104,12 +107,17 @@ export default {
     search: '',
     searchTime: '',
     submitted: false,
+    editing: false,
     headers: [
       { key: 'id', title: '#', align: ' d-none' },
       { key: 'name', title: 'Route Name' },
       { key: 'timeScheduleDetails', title: 'Time List' },
+      { key: 'status', title: 'Status' },
       { key: 'actions', title: 'Actions', sortable: false },
     ],
+    
+    selectedStatus: "",
+    statusItems: ["Active", "Inactive"],
 
     timeItems: [],
 
@@ -158,7 +166,7 @@ export default {
   methods: {
     // Get All Route Items...
     retrieveTimes() {
-      userRequest.get(`/timeschedules?PageNumber=${this.page}&PageSize=${this.itemsPerPage}&search=${this.search}`)
+      userRequest.get(`/all-timeschedules?PageNumber=${this.page}&PageSize=${this.itemsPerPage}&search=${this.search}`)
         .then((response) => {
           this.timeItems = response.data.data.data;
           console.log("get", response.data);
@@ -185,9 +193,11 @@ export default {
 
     // Edit Route Items...
     editItem(id) {
+      this.editing = true;
       userRequest.get(`/timeschedules/${id}`)
         .then((response) => {
           this.time = response.data.data;
+          this.selectedStatus = response.data.data.status;
           console.log("get details route edit", response.data.data.timeScheduleDetails);
           // let checkedArr = []
           const updatedData = response.data.data.timeScheduleDetails.map((o) => {
@@ -195,7 +205,6 @@ export default {
             return obj
           })
           this.inputFields = updatedData
-
         })
         .catch((e) => {
           console.log(e);
@@ -204,6 +213,7 @@ export default {
 
     // Update Route Items...
     update(id) {
+      console.log("update", id);
       let timesArr = this.inputFields.map((o) => {
         let obj = {
           time: o.selectedTime,
@@ -213,6 +223,7 @@ export default {
       let timeUpdate = {
         name: this.time.name,
         timeScheduleDetails: timesArr,
+        status: this.selectedStatus
       };
       userRequest.put(`/timeschedules/${id}`, timeUpdate)
         .then(response => {
@@ -222,6 +233,9 @@ export default {
         })
         .catch(e => {
           console.log(e);
+        })
+        .finally(() => {
+          this.editing = false;
         });
     },
 
@@ -231,7 +245,7 @@ export default {
       if (valid) {
         if (this.time.id) {
           // If ID is present, update data using the API
-          this.update(this.route.id);
+          this.update(this.time.id);
           this.submitted = true;
           setTimeout(() => { this.reset(); }, 2000);
         } else {
