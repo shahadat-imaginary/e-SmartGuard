@@ -437,9 +437,10 @@ export default {
 
     // Edit Patrols data...
     editItem(id) {
+      this.patrol.id = id;
       userRequest.get(`/patrols/${id}`)
         .then((response) => {
-          console.log(response.data.data)
+          this.patrol = response.data.data;
           this.selectedGuard = response.data.data.guard;
           this.selectedCampus = response.data.data.route.campus,
           this.selectedRoute = response.data.data.route,
@@ -464,6 +465,7 @@ export default {
 
     // Update Patrols data...
     update(id) {
+      console.log("Update")
       let patrolUpdate = {
         guardId: this.selectedGuard.id,
         routeId: this.selectedRoute.id,
@@ -492,7 +494,7 @@ export default {
     async save() {
       const { valid } = await this.$refs.form.validate()
       if (valid) {
-        if (this.patrol.id) {
+        if (this.editing) {
           // If ID is present, update data using the API
           this.update(this.patrol.id);
           this.submitted = true;
