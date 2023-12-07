@@ -45,6 +45,7 @@
 
               <template v-slot:[`item.actions`]="{ item }">
                 <v-icon size="small" class="me-2" @click="viewItem(item.columns.id)">mdi-eye</v-icon>
+                <v-icon size="small" class="me-2" @click="editItem(item.columns.id)">mdi-square-edit-outline</v-icon>
               </template>
 
               <template v-slot:bottom>
@@ -77,12 +78,12 @@
             <v-sheet class="mx-auto">
               <div v-if="!submitted">
                 <v-form ref="form" @submit.prevent="save" lazy-validation>
-                  <v-autocomplete v-model:search="searchCampus" v-model="selectedCampus" label="Campus *"
-                    item-value="id" return-object="" item-title="name" :items="this.campusItems"
-                    :rules="[(v) => !!v || 'Campus is required']" variant="outlined" required></v-autocomplete>
                   <v-autocomplete v-model:search="searchGuard" v-model="selectedGuard" label="Guard Name *"
                     item-value="id" return-object="" item-title="name" :items="this.guardItems"
                     :rules="[(v) => !!v || 'Guard is required']" variant="outlined" required></v-autocomplete>
+                  <v-autocomplete v-model:search="searchCampus" v-model="selectedCampus" label="Campus *"
+                    item-value="id" return-object="" item-title="name" :items="this.campusItems"
+                    :rules="[(v) => !!v || 'Campus is required']" variant="outlined" required></v-autocomplete>
                   <v-autocomplete v-model:search="searchRoute" v-model="selectedRoute" label="Route *" item-value="id"
                     return-object="" item-title="name" :items="this.routeItems"
                     :rules="[(v) => !!v || 'Route is required']" variant="outlined" required></v-autocomplete>
@@ -118,6 +119,60 @@
         </v-card>
       </v-col>
 
+      <v-col v-if="editing" md="5" sm="12">
+        <v-card elevation="4">
+          <v-row>
+            <v-col md="8" sm="12">
+              <v-card-title>Update patrol</v-card-title>
+            </v-col>
+            <v-col md="4" sm="12">
+              <v-btn color="success" class="mt-2" @click="addItem">Add new</v-btn>
+            </v-col>
+          </v-row>
+          <v-card-text class="mt-3">
+            <v-sheet class="mx-auto">
+              <div v-if="!submitted">
+                <v-form ref="form" @submit.prevent="save" lazy-validation>
+                  <v-autocomplete v-model:search="searchGuard" v-model="selectedGuard" label="Guard Name *"
+                    item-value="id" return-object="" item-title="name" :items="this.guardItems"
+                    :rules="[(v) => !!v || 'Guard is required']" variant="outlined" required></v-autocomplete>
+                  <v-autocomplete v-model:search="searchCampus" v-model="selectedCampus" label="Campus *"
+                    item-value="id" return-object="" item-title="name" :items="this.campusItems"
+                    :rules="[(v) => !!v || 'Campus is required']" variant="outlined" required></v-autocomplete>
+                  <v-autocomplete v-model:search="searchRoute" v-model="selectedRoute" label="Route *" item-value="id"
+                    return-object="" item-title="name" :items="this.routeItems"
+                    :rules="[(v) => !!v || 'Route is required']" variant="outlined" required></v-autocomplete>
+                  <v-autocomplete v-model:search="searchShift" v-model="selectedShift" label="Shift *"
+                    item-value="id" return-object="" item-title="name" :items="this.shiftItems"
+                    :rules="[(v) => !!v || 'Shift is required']" variant="outlined" required></v-autocomplete>
+                  <v-text-field v-if="isShiftSelected" readonly>{{ selectedShift.start }} - {{ selectedShift.end }}</v-text-field>
+                  <v-autocomplete v-model:search="searchTime" v-model="selectedTime" label="Time *"
+                    item-value="id" return-object="" item-title="name" :items="this.timeItems"
+                    :rules="[(v) => !!v || 'Time is required']" variant="outlined" required></v-autocomplete>
+                  <v-text-field v-model="startdate" type="date" label="Start Date *"
+                    :rules="[v => !!v || 'Start Date is required']" variant="outlined" required></v-text-field>
+                  <v-text-field v-model="enddate" type="date" label="End Date *"
+                    :rules="[v => !!v || 'End Date is required']" variant="outlined" required></v-text-field>
+                  <v-checkbox class="justify-center" v-model="timerEnabled" color="deep-purple" required>
+                    <template v-slot:label>
+                      Timer enabled
+                    </template>
+                  </v-checkbox>
+                  <div class="d-flex">
+                    <v-btn color="success" class="mt-4 mr-2" type="submit">Update</v-btn>
+                  </div>
+                </v-form>
+              </div>
+              <div v-else>
+                <v-card class="mx-auto">
+                  <v-card-title>Submitted successfully!</v-card-title>
+                </v-card>
+              </div>
+            </v-sheet>
+          </v-card-text>
+        </v-card>
+      </v-col>
+
       <v-col v-if="viewing" md="5" sm="12">
         <v-card elevation="4">
           <v-row>
@@ -140,13 +195,13 @@
                     <v-text-field v-model="viewPatrolItem.campus" label="Campus" readonly></v-text-field>
                   </v-col>
                   <v-col md="12" sm="12" class="ma-0 pa-0">
+                    <v-textarea v-model="viewPatrolItem.route" auto-grow="true" rows="1" label="Route" readonly></v-textarea>
+                  </v-col>
+                  <v-col md="12" sm="12" class="ma-0 pa-0">
                     <v-text-field v-model="viewPatrolItem.shift.name" label="Shift" readonly></v-text-field>
                   </v-col>
                   <v-col md="12" sm="12" class="ma-0 pa-0">
                     <v-text-field v-model="viewPatrolItem.time" label="Time" readonly></v-text-field>
-                  </v-col>
-                  <v-col md="12" sm="12" class="ma-0 pa-0">
-                    <v-textarea v-model="viewPatrolItem.route" auto-grow="true" rows="1" label="Route" readonly></v-textarea>
                   </v-col>
                   <v-col md="12" sm="12" class="ma-0 pa-0">
                     <v-text-field v-model="viewPatrolItem.date" label="Date" readonly></v-text-field>
@@ -181,6 +236,7 @@ export default {
   data: () => ({
     viewing: false,
     adding: true,
+    editing: false,
     page: 1,
     itemsPerPage: 10,
     totalPage: 1,
@@ -201,7 +257,7 @@ export default {
     searchPatrol: '',
 
     campusItems: [],
-    selectedCampus: [],
+    selectedCampus: null,
     searchCampus: '',
 
     shiftItems: [],
@@ -267,6 +323,9 @@ export default {
     itemsPerPage(val) {
       this.itemsPerPage = val;
       this.retrievePatrols()
+    },
+    searchCampus(val) {
+      val && val !== this.selectedCampus && this.querySelectionsCampus(val)
     },
     searchGuard(val) {
       val && val !== this.selectedGuard && this.querySelectionsGuard(val)
@@ -352,9 +411,16 @@ export default {
       this.retrieveGuard(e)
     }, 1000),
 
+    querySelectionsCampus: debounce(function debounceRead(e){
+      console.log(e);
+      this.retrieveRoute();
+    }),
+
     // Get All Routes data...
-    retrieveRoute(search) {
-      userRequest.get(`/routes?search=${this.searchRoute}`)
+    retrieveRoute() {
+      var campusId = this.selectedCampus != null ? this.selectedCampus.id : "";
+      console.log(this.selectedCampus, campusId);
+      userRequest.get(`/routes?campusId=${campusId}&&search=${this.searchRoute}`)
         .then((response) => {
           this.routeItems = response.data.data.data;
         })
@@ -365,25 +431,35 @@ export default {
 
     // Search Routes....
     querySelectionsRoute: debounce(function debounceRead(e) {
-      this.retrieveRoute(e)
+      this.searchRoute = e;
+      this.retrieveRoute()
     }, 1000),
 
     // Edit Patrols data...
     editItem(id) {
-      this.editing = true;
       userRequest.get(`/patrols/${id}`)
         .then((response) => {
-          this.patrol = response.data.data;
+          console.log(response.data.data)
+          this.selectedGuard = response.data.data.guard;
+          this.selectedCampus = response.data.data.route.campus,
+          this.selectedRoute = response.data.data.route,
+          this.selectedShift = response.data.data.shift,
+          this.selectedTime = response.data.data.timeSchedule,
           this.startdate = moment(response.data.data.start).format("YYYY-MM-DD")
           this.startTime = moment(response.data.data.start).format("hh:mm")
           this.enddate = moment(response.data.data.end).format("YYYY-MM-DD")
-          this.endTime = moment(response.data.data.end).format("hh:mm")
-          this.selectedGuard = response.data.data.guard;
-          this.selectedRoute = response.data.data.route;
+          this.endTime = moment(response.data.data.end).format("hh:mm"),
+          this.timerEnabled = response.data.data.timerEnabled
         })
         .catch((e) => {
           
-        });
+        })
+        .finally
+        {
+          this.adding = false;
+          this.viewing = false;
+          this.editing = true;
+        };
     },
 
     // Update Patrols data...
@@ -391,22 +467,21 @@ export default {
       let patrolUpdate = {
         guardId: this.selectedGuard.id,
         routeId: this.selectedRoute.id,
-        start: this.startdate + 'T' + this.startTime + ':00',
-        end: this.enddate + 'T' + this.endTime + ':00',
+        shiftId: this.selectedShift.id,
+        timeScheduleId: this.selectedTime.id,
+        start: this.startdate,
+        end: this.enddate,
+        timerEnabled: this.timerEnabled,
       };
 
       userRequest.put(`/patrols/${id}`, patrolUpdate)
         .then(response => {
-          this.patrol = response.data.data;
-          
-
-          this.startdate = moment(response.data.data.start).format("YYYY-MM-DD")
-          this.startTime = moment(response.data.data.start).format("hh:mm")
-          this.enddate = moment(response.data.data.end).format("YYYY-MM-DD")
-          this.endTime = moment(response.data.data.end).format("hh:mm")
+          this.patrol.id = response.data.id;
+          this.submitted = true;
           this.selectedGuard = null;
           this.selectedRoute = null;
           this.refreshList();
+          this.resetData();
         })
         .catch(e => {
           console.log(e);
@@ -433,19 +508,17 @@ export default {
             timerEnabled: this.timerEnabled,
           };
 
-          console.log(patrolCreate);
-
           userRequest.post('/patrols', patrolCreate)
             .then((response) => {
               this.patrol.id = response.data.id;
               console.log(response.data);
               this.submitted = true;
-              setTimeout(() => {
-                this.reset();
-                this.retrievePatrols();
-              }, 2000);
               this.selectedGuard = null;
               this.selectedRoute = null;
+              setTimeout(() => {
+                this.retrievePatrols();
+                this.reset();
+              }, 2000);
             })
             .catch((e) => {
               console.log(e);
@@ -465,7 +538,6 @@ export default {
           this.viewPatrolItem.time = this.timeScheduleData(response.data.data.timeSchedule);
           this.viewPatrolItem.date = this.formatTime();
           this.viewPatrolItem.timer = response.data.data.timerEnabled ? "Enabled" : "Disabled";
-          console.log(response.data.data);
         })
         .catch((e) => {
           console.log(e);
@@ -473,6 +545,7 @@ export default {
         .finally(() => {
           this.viewing = true;
           this.adding = false;
+          this.editing = false;
         });
     },
 
@@ -506,7 +579,18 @@ export default {
     addItem() {
       this.patrol = this.defaultpatrol;
       this.viewing = false;
+      this.editing = false;
       this.adding = true;
+      this.resetData();
+    },
+
+    resetData() {
+      this.selectedCampus = null;
+      this.selectedGuard = null;
+      this.selectedRoute = null;
+      this.selectedShift = null;
+      this.startdate = null;
+      this.enddate = null;
     },
 
     // Search ...
