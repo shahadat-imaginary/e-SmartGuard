@@ -94,6 +94,7 @@
                   <v-autocomplete v-model:search="searchTime" v-model="selectedTime" label="Time *"
                     item-value="id" return-object="" item-title="name" :items="this.timeItems"
                     :rules="[(v) => !!v || 'Time is required']" variant="outlined" required></v-autocomplete>
+                    <v-text-field v-if="isTimeSelected" readonly>{{ timeScheduleData(selectedTime) }}</v-text-field>
                   <v-text-field v-model="startdate" type="date" label="Start Date *"
                     :rules="[v => !!v || 'Start Date is required']" variant="outlined" required></v-text-field>
                   <v-text-field v-model="enddate" type="date" label="End Date *"
@@ -198,7 +199,7 @@
                     <v-textarea v-model="viewPatrolItem.route" auto-grow="true" rows="1" label="Route" readonly></v-textarea>
                   </v-col>
                   <v-col md="12" sm="12" class="ma-0 pa-0">
-                    <v-text-field v-model="viewPatrolItem.shift.name" label="Shift" readonly></v-text-field>
+                    <v-text-field v-model="viewPatrolItem.shiftData" label="Shift" readonly></v-text-field>
                   </v-col>
                   <v-col md="12" sm="12" class="ma-0 pa-0">
                     <v-text-field v-model="viewPatrolItem.time" label="Time" readonly></v-text-field>
@@ -268,6 +269,7 @@ export default {
     timeItems: [],
     selectedTime: [],
     searchTime: '',
+    isTimeSelected: false,
 
     guardItems: [],
     selectedGuard: [],
@@ -286,6 +288,7 @@ export default {
       guard: '',
       route: '',
       shift: '',
+      shiftData: "",
       time: '',
       date: '',
       status: '',
@@ -332,6 +335,12 @@ export default {
     },
     searchRoute(val) {
       val && val !== this.selectedRoute && this.querySelectionsRoute(val)
+    },
+    searchTime(val) {
+      if(val != null && val != ""){
+        val && val != this.selectedTime && this.querySelectionTime(val);
+        this.isTimeSelected = true;
+      }
     },
     searchShift(val) {
       if (val !== null && val !== "") {
@@ -415,6 +424,19 @@ export default {
       console.log(e);
       this.retrieveRoute();
     }),
+
+    querySelectionTime: debounce(function debounceRead(e){
+      this.retrieveTime();
+    }),
+
+    retrieveTime() {
+        if (this.selectedTime != null) {
+          userRequest.get(`/timeSchedules/${this.selectedTime.id}`)
+          .then((response) => {
+
+          })
+        }
+    },
 
     // Get All Routes data...
     retrieveRoute() {
@@ -536,8 +558,9 @@ export default {
           this.viewPatrolItem = response.data.data;
           this.viewPatrolItem.campus = response.data.data.route.campus.name;
           this.viewPatrolItem.route = this.checkpointData(response.data.data.route);
+          this.viewPatrolItem.shiftData = `${response.data.data.shift.name} (${response.data.data.shift.start} - ${response.data.data.shift.end})`;
           this.viewPatrolItem.timeSchedule = response.data.data.timeSchedule;
-          this.viewPatrolItem.time = this.timeScheduleData(response.data.data.timeSchedule);
+          this.viewPatrolItem.time = response.data.data.timeSchedule.name + "(" + this.timeScheduleData(response.data.data.timeSchedule) + ")";
           this.viewPatrolItem.date = this.formatTime();
           this.viewPatrolItem.timer = response.data.data.timerEnabled ? "Enabled" : "Disabled";
         })
@@ -562,14 +585,12 @@ export default {
     },
 
     timeScheduleData(timeSchedule) {
-      console.log("timeschedule", timeSchedule);
       let checkedArr = []
       const updatedData = timeSchedule.timeScheduleDetails.map((o) => {
         let obj = { ...o }
         checkedArr.push(obj.time)
       })
-      console.log("checkedArr", checkedArr.join());
-      return timeSchedule.name + "(" + checkedArr.join() + ")";
+      return checkedArr.join();
     },
 
     formatTime() {
