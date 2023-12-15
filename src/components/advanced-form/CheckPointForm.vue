@@ -55,6 +55,9 @@
                     <v-btn color="success" class="mt-4 mr-2" type="submit">Save</v-btn>
                     <v-btn color="error" class="mt-4" @click="reset">Reset</v-btn>
                   </div>
+                  <div v-if="isError" class="d-flex">
+                    <v-list-subheader color="error" v-if="errorMessage" type="Error">{{errorMessage}}</v-list-subheader>
+                  </div>
                 </v-form>
               </div>
               <div v-else>
@@ -81,6 +84,8 @@ export default {
     itemsPerPage: 10,
     totalPage: 1,
     search: '',
+    isError: false,
+    errorMessage: "",
     headers: [
       { key: 'id', title: '#', align: ' d-none' },
       { key: 'name', title: 'Check Point Name' },
@@ -159,6 +164,7 @@ export default {
 
     // Edit CheckPoints data...
     editItem(id) {
+      this.isError = false;
       this.editing = true;
       userRequest.get(`/checkpoints/${id}`)
         .then((response) => {
@@ -180,6 +186,7 @@ export default {
         status: this.selectedStatus
       };
 
+      this.editing = false;
       userRequest.put(`/checkpoints/${id}`, checkPointUpdate)
         .then(response => {
           this.checkItem = response.data.data;
@@ -188,6 +195,8 @@ export default {
         })
         .catch(e => {
           console.log(e);
+            this.isError = true;
+            this.errorMessage = e.response.data.message;
         })
         .finally(() => {
           this.editing = false;
@@ -198,6 +207,7 @@ export default {
     async save() {
       const { valid } = await this.$refs.form.validate()
       if (valid) {
+        this.isError = false;
         if (this.checkItem.id) {
           // If ID is present, update data using the API
           this.update(this.checkItem.id);
@@ -222,6 +232,8 @@ export default {
             })
             .catch((e) => {
               console.log(e);
+              this.isError = true;
+              this.errorMessage = e.response.data.message;
             });
         }
       }

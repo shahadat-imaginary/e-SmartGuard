@@ -108,6 +108,9 @@
                     <v-btn color="success" class="mt-4 mr-2" type="submit">Save</v-btn>
                     <v-btn color="error" class="mt-4" @click="reset">Reset</v-btn>
                   </div>
+                  <div v-if="isError" class="d-flex">
+                    <v-list-subheader color="error" v-if="errorMessage" type="Error">{{errorMessage}}</v-list-subheader>
+                  </div>
                 </v-form>
               </div>
               <div v-else>
@@ -242,6 +245,8 @@ export default {
     itemsPerPage: 10,
     totalPage: 1,
     timerEnabled: false,
+    isError: false,
+    errorMessage: "",
     headers: [
       { key: 'id', title: '#', align: ' d-none' },
       { key: 'guard', title: 'Guard' },
@@ -545,7 +550,8 @@ export default {
               }, 2000);
             })
             .catch((e) => {
-              console.log(e);
+              this.isError = true;
+              this.errorMessage = e.response.data.message;
             });
         }
       }

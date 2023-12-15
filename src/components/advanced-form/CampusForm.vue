@@ -56,6 +56,9 @@
                     <v-btn color="success" class="mt-4 mr-2" type="submit">Save</v-btn>
                     <v-btn color="error" class="mt-4" @click="reset">Reset</v-btn>
                   </div>
+                  <div v-if="isError" class="d-flex">
+                    <v-list-subheader color="error" v-if="errorMessage" type="Error">{{errorMessage}}</v-list-subheader>
+                  </div>
                 </v-form>
               </div>
               <div v-else>
@@ -82,6 +85,8 @@ export default {
     itemsPerPage: 10,
     totalPage: 1,
     search: '',
+    isError: false,
+    errorMessage: "",
     headers: [
       { key: 'id', title: '#', align: ' d-none' },
       { key: 'name', title: 'Name' },
@@ -164,6 +169,7 @@ export default {
 
     // Edit Guard data...
     editItem(id) {
+      this.isError = false;
       this.editing = true;
       userRequest.get(`/campuses/${id}`)
         .then((response) => {
@@ -178,6 +184,7 @@ export default {
 
     // Update Guard data...
     update(id) {
+      this.isError = false;
       let campusUpdate = {
         name: this.campus.name,
         latitude: this.campus.latitude,
@@ -192,12 +199,14 @@ export default {
           this.refreshList();
         })
         .catch(e => {
-          console.log(e);
+            this.isError = true;
+            this.errorMessage = e.response.data.message;
         });
     },
 
     // Save Guard data...
     async save() {
+      this.isError = false;
       const { valid } = await this.$refs.form.validate()
       if (valid) {
         if (this.campus.id) {
@@ -222,7 +231,8 @@ export default {
               }, 2000);
             })
             .catch((e) => {
-              console.log(e);
+              this.isError = true;
+              this.errorMessage = e.response.data.message;
             });
         }
       }

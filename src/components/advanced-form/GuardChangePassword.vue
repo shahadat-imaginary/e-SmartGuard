@@ -66,6 +66,9 @@
                     <v-btn color="success" class="mt-4 mr-2" type="submit">Save</v-btn>
                     <v-btn color="error" class="mt-4" @click="reset">Reset</v-btn>
                   </div>
+                  <div v-if="isError" class="d-flex">
+                    <v-list-subheader color="error" v-if="errorMessage" type="Error">{{errorMessage}}</v-list-subheader>
+                  </div>
                 </v-form>
               </div>
               <div v-else>
@@ -92,6 +95,8 @@ export default {
     itemsPerPage: 10,
     totalPage: 1,
     search: '',
+    isError: false,
+    errorMessage: "",
     headers: [
       { key: 'id', title: '#', align: ' d-none' },
       { key: 'name', title: 'Name' },
@@ -176,6 +181,7 @@ export default {
 
     // Edit Guard data...
     editItem(id) {
+      this.isError = false;
       userRequest.get(`/guards/${id}`)
         .then((response) => {
           this.user = response.data.data;
@@ -198,6 +204,7 @@ export default {
         password: this.user.password,
       };
 
+      this.editing = false;
       userRequest.put(`/guards/${id}`, userUpdate)
         .then(response => {
           this.user = response.data.data;
@@ -207,6 +214,8 @@ export default {
         })
         .catch(e => {
           console.log(e);
+            this.isError = true;
+            this.errorMessage = e.response.data.message;
         });
     },
 
@@ -214,6 +223,7 @@ export default {
     async save() {
       const { valid } = await this.$refs.form.validate()
       if (valid) {
+        this.isError = false;
         if (this.user.id) {
           // If ID is present, update data using the API
           this.update(this.user.id);
