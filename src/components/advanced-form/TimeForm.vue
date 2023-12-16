@@ -43,7 +43,14 @@
       </v-col>
       <v-col md="5" sm="12">
         <v-card elevation="4">
-          <v-card-title>Time Information</v-card-title>
+          <v-row>
+            <v-col md="8" sm="12">
+              <v-card-title>Time Information</v-card-title>
+            </v-col>
+            <v-col v-if="editing" md="4" sm="12">
+              <v-btn color="success" class="mt-2" @click="addItem">Add new</v-btn>
+            </v-col>
+          </v-row>
           <v-card-text class="mt-3">
             <v-sheet class="mx-auto">
               <div v-if="!submitted">
@@ -69,17 +76,17 @@
                         <v-btn @click="addInputField" color="success" icon="mdi-plus-circle" outlined></v-btn>
                       </v-col>
                     </v-row>
-                    
                     <v-autocomplete v-if="editing" v-model="selectedStatus" label="Status *" item-title="name" :items="this.statusItems"
                       :rules="[(v) => !!v || 'Status is required']" variant="outlined" required></v-autocomplete>
-                  
                   </div>
-
                   <div class="d-flex">
                     <v-btn color="success" class="mt-4 mr-2" type="submit">Save</v-btn>
                     <v-btn color="error" class="mt-4" @click="reset">Reset</v-btn>
                   </div>
                 </v-form>
+                <div v-if="isError" class="d-flex">
+                  <v-list-subheader color="error" v-if="errorMessage" type="Error">{{errorMessage}}</v-list-subheader>
+                </div>
               </div>
               <div v-else>
                 <v-card class="mx-auto">
@@ -108,6 +115,8 @@ export default {
     searchTime: '',
     submitted: false,
     editing: false,
+    isError: false,
+    errorMessage: "",
     headers: [
       { key: 'id', title: '#', align: ' d-none' },
       { key: 'name', title: 'Route Name' },
@@ -164,6 +173,9 @@ export default {
   },
 
   methods: {
+    addItem() {
+      this.reset();
+    },
     // Get All Route Items...
     retrieveTimes() {
       userRequest.get(`/all-timeschedules?PageNumber=${this.page}&PageSize=${this.itemsPerPage}&search=${this.search}`)
@@ -194,12 +206,11 @@ export default {
     // Edit Route Items...
     editItem(id) {
       this.editing = true;
+      this.isError = false;
       userRequest.get(`/timeschedules/${id}`)
         .then((response) => {
           this.time = response.data.data;
           this.selectedStatus = response.data.data.status;
-          console.log("get details route edit", response.data.data.timeScheduleDetails);
-          // let checkedArr = []
           const updatedData = response.data.data.timeScheduleDetails.map((o) => {
             let obj = { selectedTime: o.time }
             return obj
@@ -213,7 +224,6 @@ export default {
 
     // Update Route Items...
     update(id) {
-      console.log("update", id);
       let timesArr = this.inputFields.map((o) => {
         let obj = {
           time: o.selectedTime,
@@ -229,13 +239,15 @@ export default {
         .then(response => {
           this.time = response.data.data;
           this.inputFields = [{ selectedTime: null }];
+          this.isError = false;
           this.refreshList();
+          this.submitted = true;
+          setTimeout(() => { this.reset(); }, 500);
         })
         .catch(e => {
           console.log(e);
-        })
-        .finally(() => {
-          this.editing = false;
+            this.isError = true;
+            this.errorMessage = e.response.data.message;
         });
     },
 
@@ -246,10 +258,7 @@ export default {
         if (this.time.id) {
           // If ID is present, update data using the API
           this.update(this.time.id);
-          this.submitted = true;
-          setTimeout(() => { this.reset(); }, 2000);
         } else {
-          console.log("asd", this.selectedTime)
           let timeScheduleDetailsArr = this.inputFields.map((o) => {
             let obj = {
               time: o.selectedTime + ":00"
@@ -265,6 +274,7 @@ export default {
           userRequest.post('/timeschedules', timeCreate)
             .then((response) => {
               this.time.id = response.data.id;
+              this.isError = false;
               this.submitted = true;
               setTimeout(() => {
                 this.retrieveTimes();
@@ -274,6 +284,8 @@ export default {
             })
             .catch((e) => {
               console.log(e);
+              this.isError = true;
+              this.errorMessage = e.response.data.message;
             });
         }
       }
@@ -305,8 +317,10 @@ export default {
     },
 
     reset() {
-      this.route = this.defaultRoute;
+      this.time = this.defaultTime;
+      this.isError = false;
       this.submitted = false;
+      this.editing = false;
       this.inputFields = [{
         selectedTime: null,
       }];

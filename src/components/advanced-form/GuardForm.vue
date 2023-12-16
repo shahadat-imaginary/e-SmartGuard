@@ -42,7 +42,14 @@
       </v-col>
       <v-col md="5" sm="12">
         <v-card elevation="4">
-          <v-card-title>Guard Information</v-card-title>
+          <v-row>
+            <v-col md="8" sm="12">
+              <v-card-title>Guard Information</v-card-title>
+            </v-col>
+            <v-col v-if="editing" md="4" sm="12">
+              <v-btn color="success" class="mt-2" @click="addItem">Add new</v-btn>
+            </v-col>
+          </v-row>
           <v-card-text class="mt-3">
             <v-sheet class="mx-auto">
               <div v-if="!submitted">
@@ -72,6 +79,9 @@
                     <v-btn color="error" class="mt-4" @click="reset">Reset</v-btn>
                   </div>
                 </v-form>
+                <div v-if="isError" class="d-flex">
+                  <v-list-subheader color="error" v-if="errorMessage" type="Error">{{errorMessage}}</v-list-subheader>
+                </div>
               </div>
               <div v-else>
                 <v-card class="mx-auto">
@@ -98,6 +108,8 @@ export default {
     totalPage: 1,
     search: '',
     searchSupervisor: '',
+    isError: false,
+    errorMessage: "",
     headers: [
       { key: 'id', title: '#', align: ' d-none' },
       { key: 'name', title: 'Name' },
@@ -186,6 +198,9 @@ export default {
 
 
   methods: {
+    addItem() {
+      this.reset();
+    },
     // Get all Guard data...
     retrieveUsers(page, itemPerPage, search) {
       userRequest.get(`/guards?PageNumber=${page}&PageSize=${itemPerPage}&search=${search}`)
@@ -221,6 +236,7 @@ export default {
     // Edit Guard data...
     editItem(id) {
       this.editing = true;
+      this.isError = false;
       userRequest.get(`/guards/${id}`)
         .then((response) => {
           this.user = response.data.data;
@@ -241,16 +257,22 @@ export default {
         supervisorId: this.selectedSupervisor.id,
         status: this.user.status,
       };
-      this.editing = false;
       userRequest.put(`/guards/${id}`, userUpdate)
         .then(response => {
           this.user = response.data.data;
-          console.log("Update Guard:", response.data);
           this.selectedSupervisor = null;
+          this.isError = false;
+          this.submitted = true;
+          this.editing = false;
+          setTimeout(() => {
+            this.reset(); 
+          }, 2000);
           this.refreshList();
         })
         .catch(e => {
           console.log(e);
+          this.isError = true;
+          this.errorMessage = e.response.data.message;
         });
     },
 
@@ -261,8 +283,6 @@ export default {
         if (this.user.id) {
           // If ID is present, update data using the API
           this.update(this.user.id);
-          this.submitted = true;
-          setTimeout(() => { this.reset(); }, 2000);
         } else {
           let userCreate = {
             name: this.user.name,
@@ -275,8 +295,8 @@ export default {
           userRequest.post('/guards', userCreate)
             .then((response) => {
               this.user.id = response.data.id;
-              console.log(response.data);
               this.submitted = true;
+              this.isError = false;
               setTimeout(() => {
                 this.reset();
                 this.retrieveUsers(this.page, this.itemsPerPage, this.search);
@@ -285,6 +305,8 @@ export default {
             })
             .catch((e) => {
               console.log(e);
+              this.isError = true;
+              this.errorMessage = e.response.data.message;
             });
         }
       }
