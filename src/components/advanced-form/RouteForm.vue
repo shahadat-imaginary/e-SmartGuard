@@ -47,7 +47,14 @@
       </v-col>
       <v-col md="5" sm="12">
         <v-card elevation="4">
-          <v-card-title>Route Information</v-card-title>
+          <v-row>
+            <v-col md="8" sm="12">
+              <v-card-title>Route Information</v-card-title>
+            </v-col>
+            <v-col v-if="editing" md="4" sm="12">
+              <v-btn color="success" class="mt-2" @click="addItem">Add new</v-btn>
+            </v-col>
+          </v-row>
           <v-card-text class="mt-3">
             <v-sheet class="mx-auto">
               <div v-if="!submitted">
@@ -97,6 +104,9 @@
                     <v-btn color="error" class="mt-4" @click="reset">Reset</v-btn>
                   </div>
                 </v-form>
+                <div v-if="isError" class="d-flex">
+                  <v-list-subheader color="error" v-if="errorMessage" type="Error">{{errorMessage}}</v-list-subheader>
+                </div>
               </div>
               <div v-else>
                 <v-card class="mx-auto">
@@ -124,6 +134,8 @@ export default {
     search: '',
     searchCheckpoint: '',
     submitted: false,
+    isError: false,
+    errorMessage: "",
     headers: [
       { key: 'id', title: '#', align: ' d-none' },
       { key: 'name', title: 'Route Name' },
@@ -193,6 +205,9 @@ export default {
 
 
   methods: {
+    addItem() {
+      this.reset();
+    },
     retrieveCampuses() {
       userRequest.get(`/campuses`)
         .then((response) => {
@@ -248,6 +263,7 @@ export default {
     // Edit Route Items...
     editItem(id) {
       this.editing = true;
+      this.isError = false;
       userRequest.get(`/routes/${id}`)
         .then((response) => {
           this.route = response.data.data;
@@ -293,13 +309,18 @@ export default {
         .then(response => {
           this.route = response.data.data;
           this.inputFields = [{ selectedCheckpoint: null, expectedTime: null, }];
+          this.editing = false;
+          this.isError = false;
+          this.submitted = true;
+          setTimeout(() => { 
+            this.reset(); }, 
+          500);
           this.refreshList();
         })
         .catch(e => {
           console.log(e);
-        })
-        .finally(() => {
-          this.editing = false;
+          this.isError = true;
+          this.errorMessage = e.response.data.message;
         });
     },
 
@@ -310,8 +331,6 @@ export default {
         if (this.route.id) {
           // If ID is present, update data using the API
           this.update(this.route.id);
-          this.submitted = true;
-          setTimeout(() => { this.reset(); }, 2000);
         } else {
 
           let routeCheckpointsArr = this.inputFields.map((o) => {
@@ -321,7 +340,7 @@ export default {
             }
             return obj
           })
-
+          console.log(this.route)
           let routeCreate = {
             name: this.route.name,
             campusId: this.selectedCampus.id,
@@ -331,7 +350,7 @@ export default {
           userRequest.post('/routes', routeCreate)
             .then((response) => {
               this.route.id = response.data.id;
-              console.log(response.data);
+              this.isError = false;
               this.submitted = true;
               setTimeout(() => {
                 this.retrieveRoutes();
@@ -341,6 +360,8 @@ export default {
             })
             .catch((e) => {
               console.log(e);
+              this.isError = true;
+              this.errorMessage = e.response.data.message;
             });
         }
       }
@@ -373,14 +394,16 @@ export default {
     },
 
     reset() {
+      this.$refs.form.reset()
       this.route = this.defaultRoute;
+      this.isError = false;
       this.submitted = false;
+      this.editing = false;
       this.selectedCampus = null;
       this.inputFields = [{
         selectedCheckpoint: null,
         expectedTime: null,
       }];
-      this.$refs.form.reset()
     },
 
   },

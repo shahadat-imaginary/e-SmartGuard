@@ -39,7 +39,14 @@
       </v-col>
       <v-col md="5" sm="12">
         <v-card elevation="4">
-          <v-card-title>Shift Information</v-card-title>
+          <v-row>
+            <v-col md="8" sm="12">
+              <v-card-title>Shift Information</v-card-title>
+            </v-col>
+            <v-col v-if="editing" md="4" sm="12">
+              <v-btn color="success" class="mt-2" @click="addItem">Add new</v-btn>
+            </v-col>
+          </v-row>
           <v-card-text class="mt-3">
             <v-sheet class="mx-auto">
               <div v-if="!submitted">
@@ -56,10 +63,10 @@
                     <v-btn color="success" class="mt-4 mr-2" type="submit">Save</v-btn>
                     <v-btn color="error" class="mt-4" @click="reset">Reset</v-btn>
                   </div>
-                  <div v-if="isError" class="d-flex">
-                    <v-list-subheader color="error" v-if="errorMessage" type="Error">{{errorMessage}}</v-list-subheader>
-                  </div>
                 </v-form>
+                <div v-if="isError" class="d-flex">
+                  <v-list-subheader color="error" v-if="errorMessage" type="Error">{{errorMessage}}</v-list-subheader>
+                </div>
               </div>
               <div v-else>
                 <v-card class="mx-auto">
@@ -152,6 +159,9 @@ export default {
 
 
   methods: {
+    addItem() {
+      this.reset();
+    },
     // Get all Guard data...
     retrieveCampuses() {
       userRequest.get(`/all-campuses?PageNumber=${this.page}&PageSize=${this.itemsPerPage}&search=${this.search}`)
@@ -191,12 +201,17 @@ export default {
         longitude: this.campus.longitude,
         status: this.selectedStatus
       };
-      this.editing = false;
       userRequest.put(`/campuses/${id}`, campusUpdate)
         .then(response => {
           this.campus = response.data.data;
           console.log("Update Campus:", response.data);
           this.refreshList();
+          this.submitted = true;
+          setTimeout(() =>
+          {
+            this.editing = false;
+            this.reset();
+          }, 500);
         })
         .catch(e => {
             this.isError = true;
@@ -212,8 +227,6 @@ export default {
         if (this.campus.id) {
           // If ID is present, update data using the API
           this.update(this.campus.id);
-          this.submitted = true;
-          setTimeout(() => { this.reset(); }, 2000);
         } else {
           let campusCreate = {
             name: this.campus.name,
@@ -226,9 +239,9 @@ export default {
               this.campus.id = response.data.id;
               this.submitted = true;
               setTimeout(() => {
-                this.reset();
                 this.retrieveCampuses();
-              }, 2000);
+                this.reset();
+              }, 500);
             })
             .catch((e) => {
               this.isError = true;

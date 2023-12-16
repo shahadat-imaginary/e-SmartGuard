@@ -87,14 +87,15 @@
                   <v-autocomplete v-model:search="searchRoute" v-model="selectedRoute" label="Route *" item-value="id"
                     return-object="" item-title="name" :items="this.routeItems"
                     :rules="[(v) => !!v || 'Route is required']" variant="outlined" required></v-autocomplete>
+                  <v-text-field v-if="isRouteSelected" multi-line readonly>{{ formatRoute(selectedRoute) }}</v-text-field>
                   <v-autocomplete v-model:search="searchShift" v-model="selectedShift" label="Shift *"
                     item-value="id" return-object="" item-title="name" :items="this.shiftItems"
                     :rules="[(v) => !!v || 'Shift is required']" variant="outlined" required></v-autocomplete>
-                  <v-text-field v-if="isShiftSelected" readonly>{{ selectedShift.start }} - {{ selectedShift.end }}</v-text-field>
+                  <v-text-field v-if="isShiftSelected" multi-line readonly>{{ selectedShift.start }} - {{ selectedShift.end }}</v-text-field>
                   <v-autocomplete v-model:search="searchTime" v-model="selectedTime" label="Time *"
                     item-value="id" return-object="" item-title="name" :items="this.timeItems"
                     :rules="[(v) => !!v || 'Time is required']" variant="outlined" required></v-autocomplete>
-                    <v-text-field v-if="isTimeSelected" readonly>{{ timeScheduleData(selectedTime) }}</v-text-field>
+                  <v-text-field v-if="isTimeSelected" multi-line readonly>{{ timeScheduleData(selectedTime) }}</v-text-field>
                   <v-text-field v-model="startdate" type="date" label="Start Date *"
                     :rules="[v => !!v || 'Start Date is required']" variant="outlined" required></v-text-field>
                   <v-text-field v-model="enddate" type="date" label="End Date *"
@@ -146,6 +147,7 @@
                   <v-autocomplete v-model:search="searchRoute" v-model="selectedRoute" label="Route *" item-value="id"
                     return-object="" item-title="name" :items="this.routeItems"
                     :rules="[(v) => !!v || 'Route is required']" variant="outlined" required></v-autocomplete>
+                  <v-text-field v-if="isRouteSelected" readonly>{{ formatRoute(selectedRoute) }}</v-text-field>
                   <v-autocomplete v-model:search="searchShift" v-model="selectedShift" label="Shift *"
                     item-value="id" return-object="" item-title="name" :items="this.shiftItems"
                     :rules="[(v) => !!v || 'Shift is required']" variant="outlined" required></v-autocomplete>
@@ -153,6 +155,7 @@
                   <v-autocomplete v-model:search="searchTime" v-model="selectedTime" label="Time *"
                     item-value="id" return-object="" item-title="name" :items="this.timeItems"
                     :rules="[(v) => !!v || 'Time is required']" variant="outlined" required></v-autocomplete>
+                  <v-text-field v-if="isTimeSelected" readonly>{{ timeScheduleData(selectedTime) }}</v-text-field>
                   <v-text-field v-model="startdate" type="date" label="Start Date *"
                     :rules="[v => !!v || 'Start Date is required']" variant="outlined" required></v-text-field>
                   <v-text-field v-model="enddate" type="date" label="End Date *"
@@ -166,6 +169,9 @@
                     <v-btn color="success" class="mt-4 mr-2" type="submit">Update</v-btn>
                   </div>
                 </v-form>
+                <div v-if="isError" class="d-flex">
+                  <v-list-subheader color="error" v-if="errorMessage" type="Error">{{errorMessage}}</v-list-subheader>
+                </div>
               </div>
               <div v-else>
                 <v-card class="mx-auto">
@@ -283,6 +289,7 @@ export default {
     routeItems: [],
     selectedRoute: [],
     searchRoute: '',
+    isRouteSelected: false,
     
     startdate: null,
     enddate: null,
@@ -303,7 +310,7 @@ export default {
     patrol: {
       id: null,
       date: '',
-      guardinfo: '',
+      guard: '',
       route: '',
       guard_select: null,
       route_select: null,
@@ -312,8 +319,11 @@ export default {
     defaultpatrol: {
       id: null,
       date: null,
-      guardinfo: '',
-      route: '',
+      guard: null,
+      campus: null,
+      route: null,
+      shift: null,
+      time: null,
       guard_select: null,
       route_select: null,
     },
@@ -339,7 +349,10 @@ export default {
       val && val !== this.selectedGuard && this.querySelectionsGuard(val)
     },
     searchRoute(val) {
-      val && val !== this.selectedRoute && this.querySelectionsRoute(val)
+      if(val != null && val != ""){
+        val && val != this.selectedRoute && this.querySelectionsRoute(val);
+        this.isRouteSelected = true;
+      }
     },
     searchTime(val) {
       if(val != null && val != ""){
@@ -358,7 +371,7 @@ export default {
   methods: {
     // retrieve shift detail
     retrieveShiftDetail() {
-      console.log("Selected shift", this.selectedShift)
+      
     },
     // Get all Patrols data...
     retrievePatrols() {
@@ -446,7 +459,6 @@ export default {
     // Get All Routes data...
     retrieveRoute() {
       var campusId = this.selectedCampus != null ? this.selectedCampus.id : "";
-      console.log(this.selectedCampus, campusId);
       userRequest.get(`/routes?campusId=${campusId}&&search=${this.searchRoute}`)
         .then((response) => {
           this.routeItems = response.data.data.data;
@@ -478,6 +490,9 @@ export default {
           this.enddate = moment(response.data.data.end).format("YYYY-MM-DD")
           this.endTime = moment(response.data.data.end).format("hh:mm"),
           this.timerEnabled = response.data.data.timerEnabled
+          this.isShiftSelected = true;
+          this.isTimeSelected = true;
+          this.isRouteSelected = true;
         })
         .catch((e) => {
           
@@ -487,6 +502,7 @@ export default {
           this.adding = false;
           this.viewing = false;
           this.editing = true;
+          this.isError = false;
         };
     },
 
@@ -511,9 +527,16 @@ export default {
           this.selectedRoute = null;
           this.refreshList();
           this.resetData();
+          this.isError = false;
+          this.submitted = true;
+          setTimeout(() => {
+            this.reset();
+          }, 2000);
         })
         .catch(e => {
           console.log(e);
+              this.isError = true;
+              this.errorMessage = e.response.data.message;
         });
     },
 
@@ -524,8 +547,6 @@ export default {
         if (this.editing) {
           // If ID is present, update data using the API
           this.update(this.patrol.id);
-          this.submitted = true;
-          setTimeout(() => { this.reset(); }, 2000);
         } else {
           let patrolCreate = {
             guardId: this.selectedGuard.id,
@@ -540,13 +561,12 @@ export default {
           userRequest.post('/patrols', patrolCreate)
             .then((response) => {
               this.patrol.id = response.data.id;
-              console.log(response.data);
+              this.isError = false;
               this.submitted = true;
-              this.selectedGuard = null;
-              this.selectedRoute = null;
               setTimeout(() => {
                 this.retrievePatrols();
                 this.reset();
+                this.resetData();
               }, 2000);
             })
             .catch((e) => {
@@ -604,6 +624,16 @@ export default {
       return moment(this.viewPatrolItem.start).format("DD/MM/YYYY") + " - " + moment(this.viewPatrolItem.end).format("DD/MM/YYYY")
     },
 
+    formatRoute(route) {
+      console.log("route.routeCheckpoints", route.routeCheckpoints)
+      let checkedArr = []
+      const updatedData = route.routeCheckpoints.map((o) => {
+        let obj = { ...o }
+        checkedArr.push(obj.checkpoint.name)
+      })
+      return checkedArr.join();
+    },
+
     // Add Route Items...
     addItem() {
       this.patrol = this.defaultpatrol;
@@ -614,12 +644,16 @@ export default {
     },
 
     resetData() {
-      this.selectedCampus = null;
       this.selectedGuard = null;
+      this.selectedCampus = null;
       this.selectedRoute = null;
       this.selectedShift = null;
+      this.selectedTime = null;
       this.startdate = null;
       this.enddate = null;
+      this.isTimeSelected = false;
+      this.isShiftSelected = false;
+      this.isRouteSelected = false;
     },
 
     // Search ...

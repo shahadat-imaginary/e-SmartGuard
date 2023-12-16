@@ -38,7 +38,14 @@
       </v-col>
       <v-col md="5" sm="12">
         <v-card elevation="4">
-          <v-card-title>Check Point Information</v-card-title>
+          <v-row>
+            <v-col md="8" sm="12">
+              <v-card-title>Checkpoint Information</v-card-title>
+            </v-col>
+            <v-col v-if="editing" md="4" sm="12">
+              <v-btn color="success" class="mt-2" @click="addItem">Add new</v-btn>
+            </v-col>
+          </v-row>
           <v-card-text class="mt-3">
             <v-sheet class="mx-auto">
               <div v-if="!submitted">
@@ -55,10 +62,10 @@
                     <v-btn color="success" class="mt-4 mr-2" type="submit">Save</v-btn>
                     <v-btn color="error" class="mt-4" @click="reset">Reset</v-btn>
                   </div>
-                  <div v-if="isError" class="d-flex">
-                    <v-list-subheader color="error" v-if="errorMessage" type="Error">{{errorMessage}}</v-list-subheader>
-                  </div>
                 </v-form>
+                <div v-if="isError" class="d-flex">
+                  <v-list-subheader color="error" v-if="errorMessage" type="Error">{{errorMessage}}</v-list-subheader>
+                </div>
               </div>
               <div v-else>
                 <v-card class="mx-auto">
@@ -147,12 +154,14 @@ export default {
   },
 
   methods: {
+    addItem() {
+      this.reset();
+    },
     // Get all CheckPoints data...
     retrieveCheckPoint() {
       userRequest.get(`/all-checkpoints?PageNumber=${this.page}&PageSize=${this.itemsPerPage}&search=${this.search}`)
         .then((response) => {
           this.checkPointItems = response.data.data.data;
-          console.log("Get Checkpoint:", response.data);
           this.page = response.data.data.pageNumber;
           this.itemsPerPage = response.data.data.pageSize;
           this.totalPage = response.data.data.pageCount;
@@ -170,7 +179,6 @@ export default {
         .then((response) => {
           this.checkItem = response.data.data;
           this.selectedStatus = response.data.data.status;
-          console.log("Get details", response.data);
         })
         .catch((e) => {
           console.log(e);
@@ -185,21 +193,19 @@ export default {
         longitude: this.checkItem.longitude,
         status: this.selectedStatus
       };
-
-      this.editing = false;
       userRequest.put(`/checkpoints/${id}`, checkPointUpdate)
         .then(response => {
           this.checkItem = response.data.data;
-          console.log("Update Checkpoint:", response.data);
-          this.refreshList();
+          this.editing = false;
+          this.submitted = true;
+          setTimeout(() => {
+            this.reset();
+            this.refreshList();
+          }, 500);
         })
         .catch(e => {
-          console.log(e);
             this.isError = true;
             this.errorMessage = e.response.data.message;
-        })
-        .finally(() => {
-          this.editing = false;
         });
     },
 
@@ -211,15 +217,12 @@ export default {
         if (this.checkItem.id) {
           // If ID is present, update data using the API
           this.update(this.checkItem.id);
-          this.submitted = true;
-          setTimeout(() => { this.reset(); }, 2000);
         } else {
           let checkPointCreate = {
             name: this.checkItem.name,
             latitude: this.checkItem.latitude,
             longitude: this.checkItem.longitude,
           };
-
           userRequest.post('/checkpoints', checkPointCreate)
             .then((response) => {
               this.checkItem.id = response.data.id;
@@ -228,7 +231,7 @@ export default {
               setTimeout(() => {
                 this.retrieveCheckPoint();
                 this.reset();
-              }, 2000);
+              }, 500);
             })
             .catch((e) => {
               console.log(e);
@@ -260,6 +263,7 @@ export default {
       this.checkItem = this.defaultcheckItem;
       this.editing = false;
       this.submitted = false;
+      this.checkItem = this.defaultcheckItem;
       this.$refs.form.reset();
     },
 

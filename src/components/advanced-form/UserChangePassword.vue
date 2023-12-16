@@ -59,6 +59,9 @@
                     <v-btn color="error" class="mt-4" @click="reset">Reset</v-btn>
                   </div>
                 </v-form>
+                <div v-if="isError" class="d-flex">
+                  <v-list-subheader color="error" v-if="errorMessage" type="Error">{{errorMessage}}</v-list-subheader>
+                </div>
               </div>
               <div v-else>
                 <v-card class="mx-auto">
@@ -84,6 +87,8 @@ export default {
     itemsPerPage: 10,
     totalPage: 1,
     search: '',
+    isError: false,
+    errorMessage: "",
     headers: [
       { key: 'id', title: '#', align: ' d-none' },
       { key: 'name', title: 'Name' },
@@ -160,6 +165,7 @@ export default {
     // Edit User data...
     editItem(id) {
       this.editing = true;
+      this.isError = false;
       userRequest.get(`/users/${id}`)
         .then((response) => {
           this.user = response.data.data;
@@ -184,11 +190,18 @@ export default {
       userRequest.put(`/users/${id}`, userUpdate)
         .then(response => {
           this.user = response.data.data;
-          console.log("Update user:", response.data);
+          this.isError = false;
+          this.submitted = true;
+          setTimeout(() => {
+            this.reset();
+            this.refreshList();
+          }, 500);
           this.refreshList();
         })
         .catch(e => {
           console.log(e);
+            this.isError = true;
+            this.errorMessage = e.response.data.message;
         });
     },
     // Save User data...
@@ -198,11 +211,6 @@ export default {
         if (this.user.id) {
           // If ID is present, update data using the API
           this.update(this.user.id);
-          this.submitted = true;
-          setTimeout(() => {
-            this.reset();
-            this.refreshList();
-          }, 2000);
 
         } else {
           this.submitted = false;
@@ -232,6 +240,7 @@ export default {
 
     reset() {
       this.user = this.defaultuser;
+      this.isError = false;
       this.editing = false;
       this.submitted = false;
       this.$refs.form.reset();

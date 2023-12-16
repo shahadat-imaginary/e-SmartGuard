@@ -258,6 +258,7 @@ export default {
 
     reset() {
       this.user = this.defaultuser;
+      this.isError = false;
       this.editing = false;
       this.submitted = false;
       this.$refs.form.reset();

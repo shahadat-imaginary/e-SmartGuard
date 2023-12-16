@@ -22,6 +22,9 @@
                     <v-btn color="error" class="mt-4" @click="reset">Reset</v-btn>
                   </div>
                 </v-form>
+                <div v-if="isError" class="d-flex">
+                  <v-list-subheader color="error" v-if="errorMessage" type="Error">{{errorMessage}}</v-list-subheader>
+                </div>
               </div>
               <div v-else>
                 <v-card class="mx-auto">
@@ -71,6 +74,10 @@ export default {
       status: '',
     },
     submitted: false,
+    isError: false,
+    errorMessage: "",
+    isPasswordError: false,
+    passwordErrorMessage: ''
   }),
 
   mounted() {
@@ -132,6 +139,7 @@ export default {
       const { valid } = await this.$refs.form1.validate()
       if (valid) {
         if (this.accounts.me) {
+          this.isPasswordError = false;
           this.updatePassword(this.accounts.me);
           this.submitted = true;
           setTimeout(() => { this.resetPassword(); }, 2000);
@@ -159,11 +167,13 @@ export default {
       userRequest.put(`/accounts/update`, userUpdate)
         .then(response => {
           this.user = response.data.data;
-          console.log(response.data);
+          this.isError = false;
           this.refreshList();
         })
         .catch(e => {
           console.log(e);
+            this.isError = true;
+            this.errorMessage = e.response.data.message;
         });
     },
 
@@ -174,27 +184,31 @@ export default {
       userRequest.put(`/accounts/update`, passwordUpdate)
         .then(response => {
           this.user = response.data.data;
-          console.log(response.data);
+          this.isPasswordError = false;
           this.refreshList();
         })
         .catch(e => {
           console.log(e);
+            this.isPasswordError = true;
+            this.passwordErrorMessage = e.response.data.message;
         });
     },
     reset() {
+      this.isError = false;
       this.submitted = false;
       this.$refs.form.reset();
     },
     resetPassword() {
       this.submitted = false;
+      this.isPasswordError = false;
       this.$refs.form1.reset();
     },
 
     editItem() {
       userRequest.get(`/accounts/me`)
         .then((response) => {
+          this.isError = false;
           this.user = response.data.data;
-          console.log("get details", response.data);
         })
         .catch((e) => {
           console.log(e);

@@ -39,7 +39,14 @@
       </v-col>
       <v-col md="5" sm="12">
         <v-card elevation="4">
-          <v-card-title>Supervisor Information</v-card-title>
+          <v-row>
+            <v-col md="8" sm="12">
+              <v-card-title>Supervisor Information</v-card-title>
+            </v-col>
+            <v-col v-if="editing" md="4" sm="12">
+              <v-btn color="success" class="mt-2" @click="addItem">Add new</v-btn>
+            </v-col>
+          </v-row>
           <v-card-text class="mt-3">
             <v-sheet class="mx-auto">
               <div v-if="!submitted">
@@ -66,6 +73,9 @@
                     <v-btn color="error" class="mt-4" @click="reset">Reset</v-btn>
                   </div>
                 </v-form>
+                <div v-if="isError" class="d-flex">
+                  <v-list-subheader color="error" v-if="errorMessage" type="Error">{{errorMessage}}</v-list-subheader>
+                </div>
               </div>
               <div v-else>
                 <v-card class="mx-auto">
@@ -91,6 +101,8 @@ export default {
     itemsPerPage: 10,
     totalPage: 1,
     search: '',
+    isError: false,
+    errorMessage: "",
     headers: [
       { key: 'id', title: '#', align: ' d-none' },
       { key: 'name', title: 'Name' },
@@ -169,6 +181,9 @@ export default {
   },
 
   methods: {
+    addItem() {
+      this.reset();
+    },
     // Get all Supervisor data.
     retrieveUsers(page, itemPerPage, search) {
       userRequest.get(`/supervisors?PageNumber=${page}&PageSize=${itemPerPage}&search=${search}`)
@@ -187,10 +202,10 @@ export default {
     // Edit Supervisor data...
     editItem(id) {
       this.editing = true;
+      this.isError = false;
       userRequest.get(`/supervisors/${id}`)
         .then((response) => {
           this.user = response.data.data;
-          console.log("Get details", response.data);
         })
         .catch((e) => {
           console.log(e);
@@ -206,15 +221,19 @@ export default {
         email: this.user.email,
         status: this.user.status,
       };
-      this.editing = false;
       userRequest.put(`/supervisors/${id}`, userUpdate)
         .then(response => {
           this.user = response.data.data;
-          console.log("Update Supervisor:", response.data);
+          this.editing = false;
+          this.isError = false;
           this.refreshList();
+          this.submitted = true;
+          setTimeout(() => { this.reset(); this.retrieveUsers(); }, 500);
         })
         .catch(e => {
           console.log(e);
+            this.isError = true;
+            this.errorMessage = e.response.data.message;
         });
     },
 
@@ -225,8 +244,6 @@ export default {
         if (this.user.id) {
           // If ID is present, update data using the API
           this.update(this.user.id);
-          this.submitted = true;
-          setTimeout(() => { this.reset(); this.retrieveUsers(); }, 2000);
         } else {
           let supervisorCreate = {
             name: this.user.name,
@@ -238,15 +255,17 @@ export default {
           userRequest.post(`/supervisors`, supervisorCreate)
             .then((response) => {
               this.user.id = response.data.id;
-              console.log("Create supervisor", response.data);
+              this.isError = false;
               this.submitted = true;
               setTimeout(() => {
-                this.reset();
                 this.retrieveUsers(this.page, this.itemsPerPage, this.search);
+                this.reset();
               }, 2000);
             })
             .catch((e) => {
               console.log(e);
+              this.isError = true;
+              this.errorMessage = e.response.data.message;
             });
         }
       }
@@ -273,6 +292,7 @@ export default {
     },
 
     reset() {
+      this.isError = false;
       this.user = this.defaultuser;
       this.editing = false;
       this.submitted = false;
