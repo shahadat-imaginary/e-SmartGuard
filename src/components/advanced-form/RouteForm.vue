@@ -198,8 +198,8 @@ export default {
       this.retrieveRoutes()
     },
     searchCheckpoint(val) {
-      val && val !== this.selectedCheckpoint && this.querySelections(val)
-      this.retrieveRoutes()
+      console.log("Search Checkpoint", val)
+      this.retrieveCheckpoints(val)
     },
   },
 
@@ -242,15 +242,12 @@ export default {
         });
     },
 
-    // Search ....
-    querySelections: debounce(function debounceRead(e) {
-      this.retrieveCheckpoints(e)
-    }, 1000),
-
     // Add selectedCheckpoint & expectedTime Input Field...
     addInputField() {
+      this.searchCheckpoint = "";
+      this.retrieveCheckpoints(this.searchCheckpoint);
       this.inputFields.push({
-        selectedCheckpoint: [],
+        selectedCheckpoint: null,
         expectedTime: null,
       });
     },
@@ -394,7 +391,6 @@ export default {
     },
 
     reset() {
-      this.$refs.form.reset()
       this.route = this.defaultRoute;
       this.isError = false;
       this.submitted = false;
@@ -404,6 +400,7 @@ export default {
         selectedCheckpoint: null,
         expectedTime: null,
       }];
+      this.$refs.form.reset()
     },
 
   },
