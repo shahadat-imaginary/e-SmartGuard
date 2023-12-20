@@ -61,7 +61,7 @@
                       variant="outlined"></v-select>
                   </v-col>
                   <v-col md="4" sm="12">
-                    <v-text-field :modelValue="search" @update:modelValue="updateTextField" v-model="search"
+                    <v-text-field :modelValue="searchPatrol" @update:modelValue="updateTextField" v-model="searchPatrol"
                       append-inner-icon="mdi-magnify" label="Search" density="compact" variant="outlined"></v-text-field>
                   </v-col>
                 </v-row>
@@ -371,21 +371,19 @@ export default {
   methods: {
     // retrieve shift detail
     retrieveShiftDetail() {
-      
     },
     // Get all Patrols data...
     retrievePatrols() {
       userRequest.get(`/patrols?PageNumber=${this.page}&PageSize=${this.itemsPerPage}&search=${this.searchPatrol}`)
         .then((response) => {
+          this.patrolItems = [];
           this.patrolItems = response.data.data.data;
-
           this.page = response.data.data.pageNumber;
           this.itemsPerPage = response.data.data.pageSize
-
           this.totalPage = response.data.data.pageCount
         })
         .catch((e) => {
-          console.log(e);
+          console.log("error", e);
         });
     },
 
@@ -625,7 +623,6 @@ export default {
     },
 
     formatRoute(route) {
-      console.log("route.routeCheckpoints", route.routeCheckpoints)
       let checkedArr = []
       const updatedData = route.routeCheckpoints.map((o) => {
         let obj = { ...o }
@@ -660,7 +657,7 @@ export default {
     updateTextField: debounce(function debounceRead(e) {
       this.searchPatrol = e;
       this.retrievePatrols()
-    }, 1000),
+    }, 500),
 
     // Pagination ......
     pageUpdateFunction(newPageNumber) {
